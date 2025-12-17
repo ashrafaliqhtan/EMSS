@@ -1,30 +1,45 @@
-name: Django CI
+name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ main, develop ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ main ]
 
 jobs:
-  build:
-
+  test:
     runs-on: ubuntu-latest
-    strategy:
-      max-parallel: 4
-      matrix:
-        python-version: [3.7, 3.8, 3.9]
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v3
+    - uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
       with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install Dependencies
+        python-version: '3.10'
+
+    - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-    - name: Run Tests
+        pip install pytest pytest-cov pytest-django
+
+    - name: Run migrations
+      env:
+        DJANGO_SETTINGS_MODULE: config.settings
+        SECRET_KEY: test-secret-key
       run: |
-        python manage.py test
+        python manage.py migrate
+
+    - name: Run tests
+      env:
+        DJANGO_SETTINGS_MODULE: config.settings
+        SECRET_KEY: test-secret-key
+      run: |
+        pytest --cov=invigilation --cov=notifications --cov-report=xml
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests

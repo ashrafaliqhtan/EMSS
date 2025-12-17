@@ -1,0 +1,138 @@
+<!-- notifications/notification_dropdown.html -->
+<div class="dropdown-menu dropdown-menu-end p-2" style="min-width: 320px;">
+    <h6 class="dropdown-header">Recent Notifications</h6>
+    <div class="list-group" id="notification-list">
+        {% for notification in request.notifications %}
+        <a href="{% if notification.link %}{{ notification.link }}{% else %}#{% endif %}" 
+           class="list-group-item list-group-item-action small py-2 notification-item {% if not notification.read %}bg-light{% endif %}" 
+           data-id="{{ notification.id }}">
+            <div class="d-flex align-items-center">
+                <div class="me-2">
+                    <i class="fas fa-bell text-primary"></i>
+                </div>
+                <div>
+                    {{ notification.message }}
+                    <div class="text-muted small">{{ notification.created_at|timesince }} ago</div>
+                </div>
+            </div>
+        </a>
+        {% empty %}
+        <div class="text-center text-muted small py-3">No new notifications</div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+  // Add to your existing script
+const notificationSocket = new WebSocket(
+    'ws://' + window.location.host + '/ws/notifications/'
+);
+
+notificationSocket.onmessage = function(e) {
+    const data = JSON.parse(e.data);
+    const notificationList = document.getElementById('notification-list');
+    
+    const newNotification = `
+        <a href="${data.link || '#'}" 
+           class="list-group-item list-group-item-action small py-2 notification-item bg-light" 
+           data-id="${data.id}">
+            <div class="d-flex align-items-center">
+                <div class="me-2">
+                    <i class="fas fa-bell text-primary"></i>
+                </div>
+                <div>
+                    ${data.message}
+                    <div class="text-muted small">Just now</div>
+                </div>
+            </div>
+        </a>
+    `;
+    
+    notificationList.insertAdjacentHTML('afterbegin', newNotification);
+    updateBadgeCount(1);
+};
+
+function updateBadgeCount(change) {
+    const badge = document.querySelector('.notification-badge');
+    const currentCount = parseInt(badge.textContent) || 0;
+    badge.textContent = currentCount + change;
+}
+
+// Mark as read when clicked
+document.getElementById('notification-list').addEventListener('click', async function(e) {
+    const notificationItem = e.target.closest('.notification-item');
+    if (notificationItem) {
+        const notificationId = notificationItem.dataset.id;
+        await fetch(`/notifications/mark-read/${notificationId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json'
+            }
+        });
+        notificationItem.classList.remove('bg-light');
+        updateBadgeCount(-1);
+    }
+});
+
+// Helper function to get CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+// Update notification count
+function updateNotificationCount() {
+    fetch('/notifications/count/')
+        .then(response => response.json())
+        .then(data => {
+            document.querySelectorAll('.notification-badge').forEach(badge => {
+                badge.textContent = data.count;
+            });
+        });
+}
+
+// WebSocket handler
+notificationSocket.onmessage = function(e) {
+    const data = JSON.parse(e.data);
+    const notificationList = document.getElementById('notification-list');
+    
+    const newNotification = `
+        <a href="${data.link || '#'}" 
+           class="list-group-item list-group-item-action small py-2 notification-item bg-light" 
+           data-id="${data.id}">
+            <div class="d-flex align-items-center">
+                <div class="me-2">
+                    <i class="fas fa-bell text-primary"></i>
+                </div>
+                <div>
+                    ${data.message}
+                    <div class="text-muted small">Just now</div>
+                </div>
+            </div>
+        </a>
+    `;
+    
+    // Add new notification at top
+    notificationList.insertAdjacentHTML('afterbegin', newNotification);
+    
+    // Update count
+    const currentCount = parseInt(document.querySelector('.notification-badge').textContent) || 0;
+    document.querySelectorAll('.notification-badge').forEach(badge => {
+        badge.textContent = currentCount + 1;
+    });
+};
+
+// Poll for updates every 60 seconds
+setInterval(updateNotificationCount, 60000);  
+  
+</script>

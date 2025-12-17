@@ -1,0 +1,338 @@
+{% extends 'conflicts/based.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>التعارضات غير المحلولة
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped">
+                            <thead class="thead-dark">
+                                <tr>
+                                    <th width="15%">النوع</th>
+                                    <th width="45%">الوصف</th>
+                                    <th width="20%">التاريخ</th>
+                                    <th width="20%">إجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                  {% for conflict in unresolved_conflicts %}
+                                <tr>
+                                    <td>{{ conflict.get_conflict_type_display }}</td>
+                                    <td>{{ conflict.description|truncatechars:100 }}</td>
+                                    <td>{{ conflict.created_at|date:"Y-m-d H:i" }}</td>
+                                    <td>
+                                        <a href="{% url 'resolve_conflict' conflict.id %}" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-check-circle me-1"></i> حل التعارض
+                                        </a>
+                                        <a href="#" class="btn btn-sm btn-info">
+                                            <i class="fas fa-info-circle me-1"></i> تفاصيل
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-4">
+                                        <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                                        <p class="h5">لا توجد تعارضات غير محلولة</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Conflict Statistics -->
+        <div class="col-md-4 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-chart-pie me-2"></i>إحصائيات التعارضات
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <div class="card border-left-danger shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                                تعارضات غير محلولة</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ conflict_stats.unresolved }}</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 mb-3">
+                            <div class="card border-left-success shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                                إجمالي التعارضات</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ conflict_stats.total }}</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header bg-white">
+                                    <h6 class="m-0 font-weight-bold text-primary">التعارضات حسب النوع</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="chart-pie pt-4 pb-2">
+                                        <canvas id="conflictTypeChart"></canvas>
+                                    </div>
+                                    <div class="mt-4 text-center small">
+                                        {% for type in conflict_stats.by_type %}
+                                        <span class="mr-2">
+                                            <i class="fas fa-circle" style="color: {% cycle '#4e73df' '#1cc88a' '#36b9cc' '#f6c23e' '#e74a3b' '#858796' %}"></i> {{ type.conflict_type }}
+                                        </span>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Lecturers -->
+        <div class="col-md-4 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-warning text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-chalkboard-teacher me-2"></i>أعلى المحاضرين في التعارضات
+                    </h4>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for lecturer in lecturer_conflicts %}
+                        <div class="list-group-item">
+                            <div class="row align-items-center">
+                                <div class="col-auto">
+                                    <span class="avatar avatar-sm bg-warning text-white rounded-circle">
+                                        {{ lecturer.lecturer_name|first|upper }}
+                                    </span>
+                                </div>
+                                <div class="col ml--2">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h4 class="mb-0 text-sm">{{ lecturer.lecturer_name }}</h4>
+                                        <span class="badge badge-warning">{{ lecturer.conflict_count }}</span>
+                                    </div>
+                                    <p class="text-sm text-muted mb-0">{{ lecturer.lecturer_code }}</p>
+                                </div>
+                                <div class="col-auto">
+                                    <a href="{% url 'lecturer_conflicts' lecturer.id %}" class="btn btn-sm btn-info">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                            
+                            
+
+                            
+                            
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="list-group-item text-center py-4">
+                            <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                            <p class="h5">لا توجد تعارضات للمحاضرين</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Supervisors -->
+        <div class="col-md-4 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-user-shield me-2"></i>أعلى المراقبين في التعارضات
+                    </h4>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for supervisor in supervisor_conflicts %}
+                        <div class="list-group-item">
+                            <div class="row align-items-center">
+                                <div class="col-auto">
+                                    <span class="avatar avatar-sm bg-info text-white rounded-circle">
+                                        {{ supervisor.name|first|upper }}
+                                    </span>
+                                </div>
+                                <div class="col ml--2">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h4 class="mb-0 text-sm">{{ supervisor.name }}</h4>
+                                        <span class="badge badge-info">{{ supervisor.conflict_count }}</span>
+                                    </div>
+                                    <p class="text-sm text-muted mb-0">{{ supervisor.department }}</p>
+                                </div>
+                                <div class="col-auto">
+                                    <a href="{% url 'supervisor_conflicts' supervisor.id %}" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    
+                                    
+                                    
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="list-group-item text-center py-4">
+                            <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                            <p class="h5">لا توجد تعارضات للمراقبين</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hall Conflicts -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header bg-secondary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-door-open me-2"></i>تعارضات القاعات
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="hallConflictsTable" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>رقم القاعة</th>
+                                    <th>عدد التعارضات</th>
+                                    <th>أول تاريخ تعارض</th>
+                                    <th>آخر تاريخ تعارض</th>
+                                    <th>إجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for hall in hall_conflicts %}
+                                <tr>
+                                    <td>{{ hall.room_nos }}</td>
+                                    <td><span class="badge badge-danger">{{ hall.conflict_count }}</span></td>
+                                    <td>{{ hall.first_date|date:"Y-m-d" }}</td>
+                                    <td>{{ hall.last_date|date:"Y-m-d" }}</td>
+                                    <td>
+                                        <a href="#" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye me-1"></i> عرض التفاصيل
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-4">
+                                        <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                                        <p class="h5">لا توجد تعارضات للقاعات</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Pie Chart for Conflict Types
+var ctx = document.getElementById("conflictTypeChart");
+var conflictTypeChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+        labels: [
+            {% for type in conflict_stats.by_type %}
+                "{{ type.conflict_type }}",
+            {% endfor %}
+        ],
+        datasets: [{
+            data: [
+                {% for type in conflict_stats.by_type %}
+                    {{ type.count }},
+                {% endfor %}
+            ],
+            backgroundColor: [
+                '#4e73df',
+                '#1cc88a',
+                '#36b9cc',
+                '#f6c23e',
+                '#e74a3b',
+                '#858796'
+            ],
+            hoverBackgroundColor: [
+                '#2e59d9',
+                '#17a673',
+                '#2c9faf',
+                '#dda20a',
+                '#be2617',
+                '#707384'
+            ],
+            hoverBorderColor: "rgba(234, 236, 244, 1)",
+        }],
+    },
+    options: {
+        maintainAspectRatio: false,
+        tooltips: {
+            backgroundColor: "rgb(255,255,255)",
+            bodyFontColor: "#858796",
+            borderColor: '#dddfeb',
+            borderWidth: 1,
+            xPadding: 15,
+            yPadding: 15,
+            displayColors: false,
+            caretPadding: 10,
+        },
+        legend: {
+            display: false
+        },
+        cutoutPercentage: 80,
+    },
+});
+
+// Initialize DataTable for Hall Conflicts
+$(document).ready(function() {
+    $('#hallConflictsTable').DataTable({
+        "language": {
+            "url": "//cdn.datatables.net/plug-ins/1.10.20/i18n/Arabic.json"
+        },
+        "order": [[1, "desc"]]
+    });
+});
+</script>
+{% endblock %}

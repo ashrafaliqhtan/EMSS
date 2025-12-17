@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}نظام إدارة الامتحانات المتقدم{% endblock %}</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap RTL -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css">
+    
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    
+    <!-- AdminLTE RTL Enhanced -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.rtl.min.css">
+    
+    <!-- Animate.css -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --primary-light: #eef2ff;
+            --secondary-color: #3f37c9;
+            --danger-color: #ef233c;
+            --success-color: #4cc9f0;
+            --warning-color: #f8961e;
+            --dark-color: #2b2d42;
+            --light-color: #f8f9fa;
+            --sidebar-width: 250px;
+            --header-height: 57px;
+            --transition-speed: 0.3s;
+        }
+        
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: #f5f7fb;
+            color: #2b2d42;
+        }
+        
+        /* Modern Sidebar */
+        .main-sidebar {
+            background: linear-gradient(180deg, var(--dark-color) 0%, #1a1a2e 100%);
+            border-left: none;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .brand-link {
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding: 0.8rem 1rem;
+            background-color: rgba(0,0,0,0.2);
+        }
+        
+        .nav-sidebar .nav-item > .nav-link {
+            border-radius: 5px;
+            margin: 0.2rem 0.5rem;
+            transition: all var(--transition-speed);
+        }
+        
+        .nav-sidebar .nav-item > .nav-link:hover {
+            background-color: rgba(255,255,255,0.1);
+            transform: translateX(-5px);
+        }
+        
+        .nav-sidebar .nav-item > .nav-link.active {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 500;
+        }
+        
+        /* Modern Header */
+        .main-header {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border-bottom: none;
+        }
+        
+        .navbar-nav .nav-link {
+            position: relative;
+        }
+        
+        .navbar-nav .nav-link .badge {
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            font-size: 0.6rem;
+            padding: 3px 5px;
+        }
+        
+        /* Content Area */
+        .content-wrapper {
+            background-color: #f5f7fb;
+        }
+        
+        .content-header {
+            padding: 15px 0;
+        }
+        
+        /* Cards */
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+            transition: all var(--transition-speed);
+            margin-bottom: 1.5rem;
+        }
+        
+        .card:hover {
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+            transform: translateY(-3px);
+        }
+        
+        .card-header {
+            background-color: white;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            border-radius: 10px 10px 0 0 !important;
+            padding: 1rem 1.25rem;
+        }
+        
+        /* Tables */
+        .table {
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        
+        .table thead th {
+            background-color: var(--primary-light);
+            color: var(--dark-color);
+            border: none;
+            padding: 1rem;
+            font-weight: 600;
+        }
+        
+        .table tbody td {
+            padding: 0.75rem 1rem;
+            vertical-align: middle;
+            border-top: 1px solid rgba(0,0,0,0.03);
+        }
+        
+        .table tbody tr:hover td {
+            background-color: rgba(67, 97, 238, 0.05);
+        }
+        
+        /* Buttons */
+        .btn {
+            border-radius: 6px;
+            padding: 0.5rem 1.25rem;
+            font-weight: 500;
+            transition: all var(--transition-speed);
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+        
+        /* Forms */
+        .form-control {
+            border-radius: 6px;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.2);
+        }
+        
+        /* Animations */
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Responsive Adjustments */
+        @media (max-width: 992px) {
+            .main-sidebar {
+                transform: translateX(100%);
+                position: fixed;
+                z-index: 1038;
+                height: calc(100% - var(--header-height));
+                top: var(--header-height);
+                transition: transform var(--transition-speed);
+            }
+            
+            .sidebar-open .main-sidebar {
+                transform: translateX(0);
+            }
+            
+            .content-wrapper {
+                margin-right: 0 !important;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .content-header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .breadcrumb {
+                font-size: 0.8rem;
+            }
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="hold-transition sidebar-mini layout-fixed">
+<div class="wrapper">
+
+    <!-- Navbar -->
+    <nav class="main-header navbar navbar-expand navbar-white navbar-light">
+        <!-- Left navbar links -->
+        <ul class="navbar-nav">
+            <li class="nav-item">
+                <a class="nav-link" data-widget="pushmenu" href="#" role="button">
+                    <i class="fas fa-bars"></i>
+                </a>
+            </li>
+            <li class="nav-item d-none d-sm-inline-block">
+                <a href="{% url 'dashboard' %}" class="nav-link">الرئيسية</a>
+            </li>
+            <li class="nav-item d-none d-sm-inline-block">
+                <a href="#" class="nav-link">التعارضات</a>
+            </li>
+        </ul>
+
+        <!-- Right navbar links -->
+        <ul class="navbar-nav mr-auto">
+            <!-- Fullscreen Toggle -->
+            <li class="nav-item">
+                <a class="nav-link" data-widget="fullscreen" href="#" role="button">
+                    <i class="fas fa-expand-arrows-alt"></i>
+                </a>
+            </li>
+            
+            <!-- Notifications Dropdown Menu -->
+            <li class="nav-item dropdown">
+                <a class="nav-link" data-toggle="dropdown" href="#">
+                    <i class="far fa-bell"></i>
+                    {% if request.user.notifications.unread.count > 0 %}
+                    <span class="badge bg-danger navbar-badge pulse">{{ request.user.notifications.unread.count }}</span>
+                    {% endif %}
+                </a>
+                <div class="dropdown-menu dropdown-menu-lg dropdown-menu-left shadow-lg">
+                    <span class="dropdown-item dropdown-header bg-primary text-white">
+                        {% if request.user.notifications.unread.count > 0 %}
+                        لديك {{ request.user.notifications.unread.count }} إشعارات جديدة
+                        {% else %}
+                        لا توجد إشعارات جديدة
+                        {% endif %}
+                    </span>
+                    <div class="dropdown-divider"></div>
+                    {% for notification in request.user.notifications.unread|slice:":5" %}
+                    <a href="{{ notification.link }}" class="dropdown-item">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-circle bg-light text-primary me-3">
+                                <i class="fas fa-{{ notification.icon|default:'envelope' }}"></i>
+                            </div>
+                            <div>
+                                <div class="small text-gray-500">{{ notification.timestamp|timesince }}</div>
+                                <span class="font-weight-bold">{{ notification.message|truncatechars:40 }}</span>
+                            </div>
+                        </div>
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    {% empty %}
+                    <a href="#" class="dropdown-item text-center py-3">
+                        <i class="far fa-bell-slash fa-2x text-muted mb-2"></i>
+                        <div>لا توجد إشعارات</div>
+                    </a>
+                    {% endfor %}
+                    <a href="{% url 'notifications' %}" class="dropdown-item dropdown-footer text-center bg-light">عرض جميع الإشعارات</a>
+                </div>
+            </li>
+            
+            <!-- User Menu -->
+            <li class="nav-item dropdown">
+                <a class="nav-link" data-toggle="dropdown" href="#">
+                    <div class="d-flex align-items-center">
+                        <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" class="img-circle elevation-1" width="30" height="30" alt="صورة المستخدم">
+                        <span class="d-none d-md-inline mx-2">{{ request.user.get_short_name|default:request.user.username }}</span>
+                    </div>
+                </a>
+                <div class="dropdown-menu dropdown-menu dropdown-menu-left shadow">
+                    <a href="#" class="dropdown-item">
+                        <i class="fas fa-user-circle mr-2"></i> الملف الشخصي
+                    </a>
+                    <a href="#" class="dropdown-item">
+                        <i class="fas fa-cog mr-2"></i> الإعدادات
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a href="{% url 'logout' %}" class="dropdown-item text-danger">
+                        <i class="fas fa-sign-out-alt mr-2"></i> تسجيل الخروج
+                    </a>
+                </div>
+            </li>
+        </ul>
+    </nav>
+    <!-- /.navbar -->
+
+    <!-- Main Sidebar Container -->
+    <aside class="main-sidebar sidebar-dark-primary elevation-4">
+        <!-- Brand Logo -->
+        <a href="{% url 'dashboard' %}" class="brand-link text-center py-3">
+
+            <span class="brand-text font-weight-light">نظام الامتحانات</span>
+        </a>
+
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <!-- Sidebar user panel (optional) -->
+            <div class="user-panel mt-3 pb-3 mb-3 d-flex">
+                <div class="image">
+                    <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" class="img-circle elevation-2" alt="صورة المستخدم">
+                </div>
+                <div class="info">
+                    <a href="#" class="d-block">{{ request.user.get_full_name|default:request.user.username }}</a>
+                    <small class="text-white-50">{{ request.user.groups.first }}</small>
+                </div>
+            </div>
+
+            <!-- Sidebar Menu -->
+            <nav class="mt-2">
+                <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+                    <li class="nav-header">القائمة الرئيسية</li>
+                    
+                    <li class="nav-item">
+                        <a href="{% url 'dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                            <i class="nav-icon fas fa-tachometer-alt"></i>
+                            <p>لوحة التحكم</p>
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a href="{% url 'exam_list' %}" class="nav-link {% if 'exam' in request.resolver_match.url_name %}active{% endif %}">
+                            <i class="nav-icon fas fa-book-open"></i>
+                            <p>الامتحانات</p>
+                            <span class="right badge badge-primary">جديد</span>
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a href="{% url 'lecturers' %}" class="nav-link {% if 'lecturer' in request.resolver_match.url_name %}active{% endif %}">
+                            <i class="nav-icon fas fa-chalkboard-teacher"></i>
+                            <p>المحاضرون</p>
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a href="{% url 'halls' %}" class="nav-link {% if 'hall' in request.resolver_match.url_name %}active{% endif %}">
+                            <i class="nav-icon fas fa-building"></i>
+                            <p>القاعات</p>
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item menu-open">
+                        <a href="#" class="nav-link">
+                            <i class="nav-icon fas fa-calendar-alt"></i>
+                            <p>
+                                الجداول
+                                <i class="right fas fa-angle-left"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="{% url 'schedule' %}" class="nav-link">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>جدول الامتحانات</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="#" class="nav-link">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>جدول المراقبين</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="#" class="nav-link">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>جدول المحاضرين</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    
+                    <li class="nav-header">الإدارة</li>
+                    
+                    <li class="nav-item">
+                        <a href="{% url 'conflict_dashboard' %}" class="nav-link {% if 'conflict' in request.resolver_match.url_name %}active{% endif %}">
+                            <i class="nav-icon fas fa-exclamation-triangle"></i>
+                            <p>إدارة التعارضات</p>
+                            <span class="right badge badge-danger">3</span>
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="nav-icon fas fa-chart-bar"></i>
+                            <p>التقارير والإحصائيات</p>
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="nav-icon fas fa-cog"></i>
+                            <p>الإعدادات</p>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            <!-- /.sidebar-menu -->
+        </div>
+        <!-- /.sidebar -->
+    </aside>
+
+    <!-- Content Wrapper. Contains page content -->
+    <div class="content-wrapper">
+        <!-- Content Header (Page header) -->
+        <div class="content-header">
+            <div class="container-fluid">
+                <div class="row mb-2">
+                    <div class="col-sm-6">
+                        <h1 class="m-0 text-dark animate__animated animate__fadeIn">{% block page_title %}{% endblock %}</h1>
+                    </div>
+                    <div class="col-sm-6">
+                        <ol class="breadcrumb float-sm-left">
+                            <li class="breadcrumb-item"><a href="{% url 'dashboard' %}"><i class="fas fa-home"></i></a></li>
+                            {% block breadcrumbs %}{% endblock %}
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main content -->
+        <section class="content">
+            <div class="container-fluid">
+                {% if messages %}
+                <div class="row">
+                    <div class="col-12">
+                        {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show animate__animated animate__fadeIn">
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                            <div class="d-flex align-items-center">
+                                <i class="fas 
+                                {% if message.tags == 'success' %}fa-check-circle{% endif %}
+                                {% if message.tags == 'error' %}fa-times-circle{% endif %}
+                                {% if message.tags == 'warning' %}fa-exclamation-triangle{% endif %}
+                                {% if message.tags == 'info' %}fa-info-circle{% endif %}
+                                me-2"></i>
+                                <div>{{ message }}</div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% block content %}{% endblock %}
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="main-footer">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-6 text-center text-md-right">
+                    <strong>الإصدار 2.0.0</strong>
+                </div>
+                <div class="col-md-6 text-center text-md-left">
+                    <strong>Copyright &copy; 2023 <a href="#">نظام إدارة الامتحانات المتقدم</a>.</strong> جميع الحقوق محفوظة.
+                </div>
+            </div>
+        </div>
+    </footer>
+</div>
+
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Bootstrap 5 -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- AdminLTE -->
+<script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Custom JS -->
+<script>
+$(document).ready(function() {
+    // Enable tooltips
+    $('[data-toggle="tooltip"]').tooltip({
+        animation: true,
+        delay: {"show": 300, "hide": 100}
+    });
+    
+    // Enable popovers
+    $('[data-toggle="popover"]').popover();
+    
+    // Auto-dismiss alerts after 5 seconds
+    setTimeout(function() {
+        $(".alert").alert('close');
+    }, 5000);
+    
+    // Add animation to cards on scroll
+    $(window).scroll(function() {
+        $('.card:not(.animated)').each(function() {
+            var cardTop = $(this).offset().top;
+            var windowBottom = $(window).scrollTop() + $(window).height();
+            
+            if (windowBottom > cardTop) {
+                $(this).addClass('animate__animated animate__fadeInUp');
+            }
+        });
+    }).scroll(); // Trigger on page load
+    
+    // Smooth scrolling for anchor links
+    $('a[href*="#"]').on('click', function(e) {
+        e.preventDefault();
+        
+        $('html, body').animate(
+            {
+                scrollTop: $($(this).attr('href')).offset().top,
+            },
+            500,
+            'linear'
+        );
+    });
+    
+    // Initialize any page-specific scripts
+    {% block page_scripts %}{% endblock %}
+});
+</script>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>

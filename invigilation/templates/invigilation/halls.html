@@ -1,0 +1,85 @@
+{% extends 'invigilation/based.html' %}
+{% comment %} Dashboard Screen {% endcomment %}
+{% block content %}
+<!-- ======= Main ======= -->
+<main id="main" class="main pt-0 mt-4">
+	<div class="pagetitle">
+		<h1>Halls & Blocks Tables</h1>
+		<nav>
+			<ol class="breadcrumb">
+				<li class="breadcrumb-item">
+					<a href="{% url 'dashboard' %}">Home</a>
+				</li>
+				<li class="breadcrumb-item">Tables</li>
+				<li class="breadcrumb-item active">Halls</li>
+			</ol>
+		</nav>
+
+		<form
+			action="{% url 'upload_hall' %}"
+			method="POST"
+			enctype="multipart/form-data">
+			{% csrf_token %}
+			<!-- <div class="text-warning mb-1">
+				NB: The accepted format is "CSV" file type
+			</div> -->
+			<div class="input-group col-md-3">
+				<label for="hall" class="input-group-text">Upload Halls</label>
+				<input
+					type="file"
+					class="form-control"
+					name="halls"
+					id="hall"
+					aria-describedby="inputGroupFileAddon04"
+					accept=".csv" />
+				<button
+					class="btn btn-outline-success"
+					type="submit"
+					id="inputGroupFileAddon04">
+					Upload
+				</button>
+			</div>
+		</form>
+	</div>
+	<!-- End Page Title -->
+
+	<section class="section">
+		<div class="row">
+			<div class="col-lg-12">
+				<div class="card">
+					<div class="card-body">
+						<h5 class="card-title">Examination Halls</h5>
+						<!-- Table with stripped rows -->
+						<table class="table datatable">
+							<thead>
+								<tr>
+									<th scope="col">#</th>
+									<th scope="col">Block</th>
+									<th scope="col">Hall Name</th>
+									<th scope="col">Hall Capacity</th>
+									<th scope="col">Hall Type</th>
+								</tr>
+							</thead>
+<tbody>
+    {% for data in halls %}
+    <tr>
+        <th scope="row">{{ data.id }}</th>
+        <td>{{ data.block }}</td>  <!-- Fixed name -->
+        <td>{{ data.name }}</td>  <!-- Fixed name -->
+        <td>{{ data.capacity }}</td>
+        <td>{{ data.type }}</td>  <!-- Fixed name -->
+    </tr>
+    {% endfor %}
+</tbody>
+
+						</table>
+						<!-- End Table with stripped rows -->
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+</main>
+<!-- End #main -->
+
+{% endblock %}

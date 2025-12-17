@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>حساب السائق – طلبات العملاء</title>
+  <!-- خط تجوّال -->
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+  <!-- Leaflet CSS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-sA+e2Q+6XcoRSfiG/8SVjk42Hc8LiZ3V1Cw2+Jf8A+M="
+    crossorigin=""
+  />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Tajawal', sans-serif;
+      background-color: #f2f2f2;
+      color: #000;
+      line-height: 1.5;
+    }
+    header { text-align: center; padding: 20px 0; }
+    nav {
+      background-color: #5C9DED;
+      margin-bottom: 20px;
+    }
+    nav ul {
+      list-style: none;
+      display: flex;
+      justify-content: center;
+      padding: 10px 0;
+    }
+    nav ul li { margin: 0 20px; }
+    nav ul li a {
+      text-decoration: none;
+      color: #000;
+      font-size: 18px;
+      font-weight: 500;
+    }
+    main { max-width: 900px; margin: auto; padding: 0 15px; }
+    h2 { margin-bottom: 15px; font-size: 28px; }
+    .request {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+    .request h3 { font-size: 22px; margin-bottom: 5px; }
+    .request p { margin-bottom: 10px; }
+    .map {
+      width: 100%;
+      height: 250px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+    }
+    .actions {
+      text-align: center;
+    }
+    .actions button {
+      padding: 8px 20px;
+      margin: 0 10px;
+      font-size: 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .actions .accept { background-color: #4CAF50; color: #fff; }
+    .actions .reject { background-color: #F44336; color: #fff; }
+  </style>
+</head>
+<body>
+
+  <!-- شعار ومعنون -->
+  <header>
+    <img src="logo.png" alt="شعار معاون" width="120">
+    <h1>حساب السائق</h1>
+  </header>
+
+  <!-- شريط التنقل -->
+  <nav>
+    <ul>
+      <li><a href="#">الرئيسية</a></li>
+      <li><a href="#">طلبات العملاء</a></li>
+      <li><a href="#">تواصل معنا</a></li>
+      <li><a href="#">تسجيل خروج</a></li>
+    </ul>
+  </nav>
+
+  <!-- قائمة الطلبات -->
+  <main>
+    <h2>طلبات العملاء الواردة</h2>
+
+    <!-- مثال طلب 1 -->
+    <div class="request" data-lat="24.7136" data-lng="46.6753">
+      <h3>العميل: أحمد محمد</h3>
+      <p>الموقع: الرياض</p>
+      <div class="map"></div>
+      <div class="actions">
+        <button class="accept">قبول</button>
+        <button class="reject">رفض</button>
+      </div>
+    </div>
+
+    <!-- مثال طلب 2 -->
+    <div class="request" data-lat="21.3891" data-lng="39.8579">
+      <h3>العميل: سارة علي</h3>
+      <p>الموقع: مكة المكرمة</p>
+      <div class="map"></div>
+      <div class="actions">
+        <button class="accept">قبول</button>
+        <button class="reject">رفض</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- Leaflet JS -->
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-o9N1j7sGI2bfiQ1VjA3CazQ2+3pXU7P4YnHfC7nGQow="
+    crossorigin=""
+  ></script>
+  <script>
+    // تهيئة خريطة لكل طلب
+    document.querySelectorAll('.request').forEach((el, idx) => {
+      const lat = el.dataset.lat;
+      const lng = el.dataset.lng;
+      const mapDiv = el.querySelector('.map');
+      mapDiv.id = 'map' + idx;
+      const map = L.map(mapDiv.id).setView([lat, lng], 13);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+      L.marker([lat, lng]).addTo(map);
+    });
+  </script>
+
+</body>
+</html>

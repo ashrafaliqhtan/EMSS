@@ -1,0 +1,26 @@
+{% extends 'invigilation/based.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-lg">
+        <div class="card-header bg-info text-white">
+            <h3>Exam Details</h3>
+        </div>
+        <div class="card-body">
+            <p><strong>Exam Name:</strong> {{ exam.exam_name }}</p>
+            <p><strong>Date:</strong> {{ exam.exam_date }}</p>
+            <p><strong>Hall:</strong> {{ exam.exam_hall }}</p>
+            <p><strong>Type:</strong> {{ exam.exam_type }}</p>
+            <p><strong>Period:</strong> {{ exam.exam_period }}</p>
+            <p><strong>Invigilators:</strong>
+                {% if exam.invigilator1 %} {{ exam.invigilator1 }}{% endif %}
+                {% if exam.invigilator2 %} , {{ exam.invigilator2 }}{% endif %}
+            </p>
+        </div>
+        <div class="card-footer">
+            <a href="{% url 'exam_list' %}" class="btn btn-secondary">Back to Exam List</a>
+            <a href="{% url 'edit_exam' exam.pk %}" class="btn btn-warning">Edit Exam</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

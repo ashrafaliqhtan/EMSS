@@ -1,0 +1,487 @@
+{% extends 'invigilation/base1.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">
+                        <i class="fas fa-calendar-alt me-2"></i>جدول قاعات الامتحانات
+                    </h4>
+                    <div>
+                        <a href="{% url 'upload_exam_halls' %}" class="btn btn-light btn-sm me-2">
+                            <i class="fas fa-file-import me-1"></i>استيراد CSV
+                        </a>
+                        <a href="{% url 'create_exam_hall' %}" class="btn btn-success btn-sm">
+                            <i class="fas fa-plus-circle me-1"></i>إضافة جديد
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <!-- Search and Filter Bar -->
+                    <form method="get" class="mb-4">
+                        <div class="row g-3">
+                            <div class="col-md-2">
+                                <input type="text" name="search" class="form-control" placeholder="بحث بالمقرر أو القاعة..." value="{{ search_query }}">
+                            </div>
+                            <div class="col-md-2">
+                                <input type="date" name="date" class="form-control" value="{{ date_filter }}">
+                            </div>
+                            <div class="col-md-2">
+                                <select name="period" class="form-select">
+                                    <option value="">كل الفترات</option>
+                                    <option value="AM" {% if period_filter == 'AM' %}selected{% endif %}>صباحاً</option>
+                                    <option value="PM" {% if period_filter == 'PM' %}selected{% endif %}>مساءً</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <select name="supervisor" class="form-select">
+                                    <option value="">كل المراقبين</option>
+                                    {% for sup in all_supervisors %}
+                                    <option value="{{ sup.id }}" {% if supervisor_filter == sup.id|stringformat:"s" %}selected{% endif %}>{{ sup.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <select name="level" class="form-select">
+                                    <option value="">كل المستويات</option>
+                                    {% for lvl in all_levels %}
+                                    <option value="{{ lvl }}" {% if level_filter == lvl %}selected{% endif %}>{{ lvl }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2 d-flex">
+                                <button type="submit" class="btn btn-primary flex-grow-1 me-2">
+                                    <i class="fas fa-filter me-1"></i>تطبيق
+                                </button>
+                                <a href="{% url 'exam_hall_panel' %}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-redo"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Stats Cards -->
+                    <div class="row mb-4">
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-start border-primary border-4 shadow-sm h-100 py-2 cursor-pointer" onclick="filterToday()">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col me-2">
+                                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                                التخصيصات اليوم</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ today_assignments }}</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-calendar-day fa-2x text-primary"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-start border-success border-4 shadow-sm h-100 py-2 cursor-pointer" onclick="filterUpcoming()">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col me-2">
+                                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                                التخصيصات القادمة</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ upcoming_assignments }}</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-calendar-plus fa-2x text-success"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-start border-info border-4 shadow-sm h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col me-2">
+                                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                                إجمالي التخصيصات</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_assignments }}</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-clipboard-list fa-2x text-info"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-start border-warning border-4 shadow-sm h-100 py-2 cursor-pointer" onclick="filterWithoutSupervisors()">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col me-2">
+                                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                                بدون مراقبين</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ no_supervisors_count }}</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-user-times fa-2x text-warning"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Main Table -->
+                    <div class="table-responsive">
+                        <table class="table table-hover table-bordered" id="dataTable" width="100%" cellspacing="0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th width="4%">#</th>
+                                    <th width="10%">التاريخ</th>
+                                    <th width="8%">الفترة</th>
+                                    <th width="10%">المستوى</th>
+                                    <th width="12%">كود المقرر</th>
+                                    <th width="18%">اسم المقرر</th>
+                                    <th width="10%">عدد الطلاب</th>
+                                    <th width="10%">القاعات</th>
+                                    <th width="13%">المراقب الأول</th>
+                                    <th width="13%">المراقب الثاني</th>
+                                    <th width="8%">إجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for assignment in page_obj %}
+                                <tr class="{% if assignment.exam_date == current_date %}table-warning blink-soft{% elif assignment.exam_date < current_date %}table-light text-muted{% endif %}">
+                                    <td>{{ forloop.counter0|add:page_obj.start_index }}</td>
+                                    <td>
+                                        <span class="d-block">{{ assignment.exam_date|date:"Y-m-d" }}</span>
+                                        <small class="text-muted">{{ assignment.exam_date|date:"l" }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{% if assignment.exam_period == 'AM' %}info{% else %}secondary{% endif %}">
+                                            {{ assignment.get_exam_period_display }}
+                                        </span>
+                                    </td>
+                                    <td>{{ assignment.level }}</td>
+                                    <td>
+                                        <strong>{{ assignment.course_code }}</strong>
+                                        {% if assignment.section %}
+                                        <span class="badge bg-dark">{{ assignment.section }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ assignment.course_name }}</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div style="width: 40px; text-align: right;" class="me-2">
+                                                {{ assignment.total_students }}
+                                            </div>
+                                            <div class="progress flex-grow-1" style="height: 20px;">
+                                                {% widthratio assignment.total_students max_students 100 as percentage %}
+                                                <div class="progress-bar {% if percentage > 80 %}bg-danger{% elif percentage > 50 %}bg-warning{% else %}bg-success{% endif %}" 
+                                                     role="progressbar" style="width: {{ percentage }}%" 
+                                                     aria-valuenow="{{ percentage }}" aria-valuemin="0" aria-valuemax="100">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% for room in assignment.room_nos.split|slice:":3" %}
+                                        <span class="badge bg-light text-dark mb-1">{{ room }}</span>
+                                        {% endfor %}
+                                        {% if assignment.room_nos.split|length > 3 %}
+                                        <span class="badge bg-dark">+{{ assignment.room_nos.split|length|add:"-3" }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if assignment.first_supervisor %}
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm me-2">
+                                                <span class="avatar-title bg-primary rounded-circle">
+                                                    {{ assignment.first_supervisor.name|slice:":1" }}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-0">{{ assignment.first_supervisor.name }}</h6>
+                                                <small class="text-muted">{{ assignment.first_supervisor.academic_degree }}</small>
+                                            </div>
+                                        </div>
+                                        {% else %}
+                                        <span class="badge bg-light text-danger">مطلوب</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if assignment.second_supervisor %}
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm me-2">
+                                                <span class="avatar-title bg-secondary rounded-circle">
+                                                    {{ assignment.second_supervisor.name|slice:":1" }}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-0">{{ assignment.second_supervisor.name }}</h6>
+                                                <small class="text-muted">{{ assignment.second_supervisor.academic_degree }}</small>
+                                            </div>
+                                        </div>
+                                        {% else %}
+                                        <span class="badge bg-light text-danger">مطلوب</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a href="{% url 'edit_exam_hall' assignment.pk %}" class="btn btn-outline-primary" title="تعديل" data-bs-toggle="tooltip">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="{% url 'delete_exam_hall' assignment.pk %}" class="btn btn-outline-danger" title="حذف" data-bs-toggle="tooltip">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                            <button class="btn btn-outline-info show-details" title="التفاصيل" data-bs-toggle="tooltip" data-id="{{ assignment.id }}">
+                                                <i class="fas fa-info-circle"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <!-- Hidden Details Row -->
+                                <tr class="details-row" id="details-{{ assignment.id }}" style="display: none;">
+                                    <td colspan="11">
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <h6><i class="fas fa-info-circle me-2"></i>معلومات إضافية:</h6>
+                                                <ul class="list-unstyled">
+                                                    <li><strong>النطاق:</strong> {{ assignment.from_to }}</li>
+                                                    <li><strong>الطلاب لكل قاعة:</strong> {{ assignment.students_per_room }}</li>
+                                                    <li><strong>تاريخ الإنشاء:</strong> {{ assignment.created_at|date:"Y-m-d H:i" }}</li>
+                                                </ul>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <h6><i class="fas fa-door-open me-2"></i>جميع القاعات:</h6>
+                                                <div>
+                                                    {% for room in assignment.room_nos.split %}
+                                                    <span class="badge bg-light text-dark mb-1">{{ room }}</span>
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <h6><i class="fas fa-tasks me-2"></i>إجراءات سريعة:</h6>
+                                                <div>
+                                                    <a href="#" class="btn btn-sm btn-outline-success me-2">
+                                                        <i class="fas fa-print"></i> طباعة
+                                                    </a>
+                                                    <a href="#" class="btn btn-sm btn-outline-dark">
+                                                        <i class="fas fa-envelope"></i> إرسال
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="11" class="text-center py-4">
+                                        <div class="empty-state">
+                                            <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                                            <h5>لا توجد تخصيصات متاحة</h5>
+                                            <p class="text-muted">لم يتم العثور على أي تخصيصات قاعات امتحان تطابق معايير البحث</p>
+                                            <a href="{% url 'create_exam_hall' %}" class="btn btn-primary mt-3">
+                                                <i class="fas fa-plus-circle me-1"></i> إنشاء تخصيص جديد
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if page_obj.paginator.num_pages > 1 %}
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <p class="text-muted">
+                                عرض <strong>{{ page_obj.start_index }}-{{ page_obj.end_index }}</strong> من <strong>{{ page_obj.paginator.count }}</strong> نتيجة
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <nav aria-label="Page navigation" class="float-end">
+                                <ul class="pagination">
+                                    {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if date_filter %}&date={{ date_filter }}{% endif %}{% if period_filter %}&period={{ period_filter }}{% endif %}{% if supervisor_filter %}&supervisor={{ supervisor_filter }}{% endif %}{% if level_filter %}&level={{ level_filter }}{% endif %}" aria-label="First">
+                                            <span aria-hidden="true">&laquo;&laquo;</span>
+                                        </a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if date_filter %}&date={{ date_filter }}{% endif %}{% if period_filter %}&period={{ period_filter }}{% endif %}{% if supervisor_filter %}&supervisor={{ supervisor_filter }}{% endif %}{% if level_filter %}&level={{ level_filter }}{% endif %}" aria-label="Previous">
+                                            <span aria-hidden="true">&laquo;</span>
+                                        </a>
+                                    </li>
+                                    {% endif %}
+
+                                    {% for num in page_obj.paginator.page_range %}
+                                    {% if page_obj.number == num %}
+                                    <li class="page-item active"><a class="page-link" href="#">{{ num }}</a></li>
+                                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                    <li class="page-item"><a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if date_filter %}&date={{ date_filter }}{% endif %}{% if period_filter %}&period={{ period_filter }}{% endif %}{% if supervisor_filter %}&supervisor={{ supervisor_filter }}{% endif %}{% if level_filter %}&level={{ level_filter }}{% endif %}">{{ num }}</a></li>
+                                    {% endif %}
+                                    {% endfor %}
+
+                                    {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if date_filter %}&date={{ date_filter }}{% endif %}{% if period_filter %}&period={{ period_filter }}{% endif %}{% if supervisor_filter %}&supervisor={{ supervisor_filter }}{% endif %}{% if level_filter %}&level={{ level_filter }}{% endif %}" aria-label="Next">
+                                            <span aria-hidden="true">&raquo;</span>
+                                        </a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if date_filter %}&date={{ date_filter }}{% endif %}{% if period_filter %}&period={{ period_filter }}{% endif %}{% if supervisor_filter %}&supervisor={{ supervisor_filter }}{% endif %}{% if level_filter %}&level={{ level_filter }}{% endif %}" aria-label="Last">
+                                            <span aria-hidden="true">&raquo;&raquo;</span>
+                                        </a>
+                                    </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Actions Modal -->
+<div class="modal fade" id="bulkActionsModal" tabindex="-1" aria-labelledby="bulkActionsModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="bulkActionsModalLabel">إجراءات جماعية</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">اختر الإجراء:</label>
+                    <select class="form-select" id="bulkActionSelect">
+                        <option value="print">طباعة التخصيصات المحددة</option>
+                        <option value="export">تصدير إلى Excel</option>
+                        <option value="notify">إرسال إشعار للمراقبين</option>
+                    </select>
+                </div>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    سيتم تطبيق الإجراء على جميع التخصيصات المحددة.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <button type="button" class="btn btn-primary" id="applyBulkAction">تطبيق</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/plug-ins/1.11.5/i18n/ar.json"></script>
+
+<script>
+$(document).ready(function() {
+    // Check if DataTable is already initialized
+    if (!$.fn.DataTable.isDataTable('#dataTable')) {
+        $('#dataTable').DataTable({
+            responsive: true,
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/ar.json'
+            },
+            dom: '<"top"flp>rt<"bottom"ip>',
+            columnDefs: [
+                { orderable: false, targets: [10] } // Disable sorting on actions column
+            ],
+            initComplete: function() {
+                $('[data-bs-toggle="tooltip"]').tooltip();
+            }
+        });
+    }
+
+    // Show/hide details
+    $(document).on('click', '.show-details', function() {
+        const id = $(this).data('id');
+        $('#details-' + id).toggle();
+        $(this).find('i').toggleClass('fa-info-circle fa-times-circle');
+    });
+
+    // Filter functions
+    function filterToday() {
+        window.location.href = "{% url 'exam_hall_panel' %}?date={{ current_date }}";
+    }
+
+    function filterUpcoming() {
+        window.location.href = "{% url 'exam_hall_panel' %}?date__gt={{ current_date }}";
+    }
+
+    function filterWithoutSupervisors() {
+        window.location.href = "{% url 'exam_hall_panel' %}?first_supervisor__isnull=True&second_supervisor__isnull=True";
+    }
+});
+</script>
+
+
+<style>
+.card-header {
+    border-bottom: none;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(0, 123, 255, 0.05);
+}
+
+.blink-soft {
+    animation: blinkSoft 2s infinite;
+}
+
+@keyframes blinkSoft {
+    0% { background-color: rgba(255, 193, 7, 0.1); }
+    50% { background-color: rgba(255, 193, 7, 0.3); }
+    100% { background-color: rgba(255, 193, 7, 0.1); }
+}
+
+.avatar-sm {
+    width: 30px;
+    height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+}
+
+.empty-state {
+    padding: 2rem;
+    text-align: center;
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.details-row {
+    background-color: #f8f9fa;
+}
+
+/* DataTables overrides */
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    padding: 0.25rem 0.5rem;
+    margin-left: 2px;
+}
+
+.dataTables_wrapper .dataTables_filter input {
+    margin-left: 0.5em;
+    display: inline-block;
+    width: auto;
+}
+</style>
+{% endblock %}

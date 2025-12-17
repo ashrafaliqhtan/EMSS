@@ -1,0 +1,11 @@
+bcrypt==3.2.0
+certifi==2023.7.22
+chardet==4.0.0
+colorama==0.4.4
+cryptography==3.4.8
+idna==3.3
+Pillow==9.0.1
+python-dateutil==2.8.1
+pytz==2022.1
+six==1.16.0
+urllib3==1.26.5

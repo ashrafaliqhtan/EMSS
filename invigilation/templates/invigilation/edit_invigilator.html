@@ -1,0 +1,44 @@
+{% extends 'invigilation/based.html' %}
+
+{% block content %}
+<div class="container mt-4">
+  <h1>Edit Invigilator Allocation</h1>
+  <form method="post">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label for="lecture_code" class="form-label">Lecture Code:</label>
+      <input type="text" id="lecture_code" name="lecture_code" class="form-control" value="{{ invigilator.lecture_code }}">
+    </div>
+    <div class="mb-3">
+      <label for="exam_hall" class="form-label">Exam Hall:</label>
+      <select id="exam_hall" name="exam_hall" class="form-select">
+        {% for hall in halls %}
+          <option value="{{ hall.id }}" {% if invigilator.exam_hall.id == hall.id %}selected{% endif %}>
+            {{ hall.hall_name }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="mb-3">
+      <label for="courses" class="form-label">Courses:</label>
+      <input type="text" id="courses" name="courses" class="form-control" value="{{ invigilator.courses }}">
+    </div>
+    <div class="mb-3">
+      <label for="exam_type" class="form-label">Exam Type:</label>
+      <input type="text" id="exam_type" name="exam_type" class="form-control" value="{{ invigilator.exam_type }}">
+    </div>
+    <div class="mb-3">
+      <label for="exam_date" class="form-label">Exam Date:</label>
+      <input type="date" id="exam_date" name="exam_date" class="form-control" value="{{ invigilator.exam_date|date:'Y-m-d' }}">
+    </div>
+    <div class="mb-3">
+      <label for="exam_period" class="form-label">Exam Period:</label>
+      <input type="text" id="exam_period" name="exam_period" class="form-control" value="{{ invigilator.exam_period }}">
+    </div>
+    <div class="d-flex justify-content-between">
+      <button type="submit" class="btn btn-primary">Save Changes</button>
+      <a href="{% url 'schedule' %}" class="btn btn-secondary">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

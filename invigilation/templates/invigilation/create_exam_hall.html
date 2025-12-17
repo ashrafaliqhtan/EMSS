@@ -1,0 +1,372 @@
+{% extends 'invigilation/based.html' %}
+{% load widget_tweaks %}
+{% load static %}
+
+{% block title %}Create Exam Hall Assignment{% endblock %}
+
+{% block extra_css %}
+<style>
+    .supervisor-card {
+        transition: all 0.3s ease;
+        border-left: 4px solid transparent;
+    }
+    .supervisor-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+    .supervisor-card.conflict {
+        border-left-color: #dc3545;
+        animation: pulseWarning 1.5s infinite;
+    }
+    .supervisor-avatar {
+        width: 40px;
+        height: 40px;
+        font-size: 1.2rem;
+    }
+    @keyframes pulseWarning {
+        0% { border-left-color: #dc3545; }
+        50% { border-left-color: rgba(220, 53, 69, 0.5); }
+        100% { border-left-color: #dc3545; }
+    }
+    .date-highlight {
+        background-color: #fff3cd;
+    }
+    .staff-type-badge {
+        font-size: 0.7rem;
+        margin-left: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">
+                        <i class="fas fa-plus-circle me-2"></i>Create Exam Hall Assignment
+                    </h4>
+                    <div>
+                        <a href="{% url 'exam_hall_panel' %}" class="btn btn-light btn-sm">
+                            <i class="fas fa-arrow-left me-1"></i> Back to Panel
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <form method="post" class="needs-validation" novalidate id="examHallForm">
+                        {% csrf_token %}
+                        
+                        <!-- Error Alert -->
+                        {% if form.errors %}
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <strong><i class="fas fa-exclamation-triangle me-2"></i>Form Errors:</strong>
+                            Please correct the errors below.
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="row g-3">
+                            <!-- Course Information -->
+                            <div class="col-lg-4">
+                                <div class="card mb-4 h-100">
+                                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                        <h5 class="mb-0"><i class="fas fa-book me-2"></i>Course Information</h5>
+                                        <span class="badge bg-primary">Required</span>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label for="id_level" class="form-label">Level</label>
+                                            {% render_field form.level class="form-control" placeholder="e.g. 4" %}
+                                            <div class="invalid-feedback">Please provide a level.</div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="id_course_code" class="form-label">Course Code</label>
+                                            {% render_field form.course_code class="form-control" placeholder="e.g. COMP 213" %}
+                                            <div class="invalid-feedback">Please provide a course code.</div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="id_course_name" class="form-label">Course Name</label>
+                                            {% render_field form.course_name class="form-control" placeholder="e.g. Data Structures" %}
+                                            <div class="invalid-feedback">Please provide a course name.</div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="id_section" class="form-label">Section (if applicable)</label>
+                                            {% render_field form.section class="form-control" placeholder="e.g. A" %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Room & Student Information -->
+                            <div class="col-lg-4">
+                                <div class="card mb-4 h-100">
+                                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                        <h5 class="mb-0"><i class="fas fa-door-open me-2"></i>Room & Students</h5>
+                                        <span class="badge bg-primary">Required</span>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label for="id_total_students" class="form-label">Total Students</label>
+                                            {% render_field form.total_students class="form-control" min="1" %}
+                                            <div class="invalid-feedback">Please enter a valid number of students.</div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="id_students_per_room" class="form-label">Students per Room</label>
+                                            {% render_field form.students_per_room class="form-control" min="1" %}
+                                            <div class="invalid-feedback">Please enter a valid number.</div>
+                                            <small class="text-muted">Calculated rooms: <span id="roomCount">0</span></small>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="id_from_to" class="form-label">From-To Range</label>
+                                            {% render_field form.from_to class="form-control" placeholder="e.g. 18-19" %}
+                                            <div class="invalid-feedback">Please provide a valid range.</div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="id_room_nos" class="form-label">Room Numbers</label>
+                                            {% render_field form.room_nos class="form-control" placeholder="e.g. F12,F13" %}
+                                            <small class="text-muted">Separate multiple rooms with commas</small>
+                                            <div class="invalid-feedback">Please provide at least one room number.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Exam & Supervisor Information -->
+                            <div class="col-lg-4">
+                                <div class="card mb-4 h-100">
+                                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                        <h5 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>Exam & Supervisors</h5>
+                                        <span class="badge bg-primary">Required</span>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label for="id_exam_date" class="form-label">Exam Date</label>
+                                            {% render_field form.exam_date class="form-control date-highlight" type="date" %}
+                                            <div class="invalid-feedback">Please select an exam date.</div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="id_exam_period" class="form-label">Exam Period</label>
+                                            {% render_field form.exam_period class="form-select" %}
+                                            <div class="invalid-feedback">Please select an exam period.</div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label class="form-label">First Supervisor/Invigilator</label>
+                                            {% render_field form.first_supervisor class="form-select" %}
+                                            <div class="invalid-feedback">Please select a supervisor/invigilator.</div>
+                                            <div id="firstSupervisorInfo" class="mt-2"></div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label class="form-label">Second Supervisor/Invigilator (Optional)</label>
+                                            {% render_field form.second_supervisor class="form-select" %}
+                                            <div id="secondSupervisorInfo" class="mt-2"></div>
+                                            <div id="supervisorConflictAlert" class="alert alert-danger mt-2 d-none">
+                                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                                <span id="conflictMessage"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Supervisor Conflict Warning Card -->
+                        <div class="row mb-4 d-none" id="supervisorConflictCard">
+                            <div class="col-12">
+                                <div class="card border-danger">
+                                    <div class="card-header bg-danger text-white">
+                                        <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Supervisor Conflict Detected</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row" id="conflictDetails"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mt-4">
+                            <button type="submit" class="btn btn-success px-4" id="submitBtn">
+                                <i class="fas fa-save me-2"></i>Create Assignment
+                            </button>
+                            <a href="{% url 'exam_hall_panel' %}" class="btn btn-outline-secondary px-4">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Form validation
+    const form = document.getElementById('examHallForm');
+    form.addEventListener('submit', function(event) {
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+    }, false);
+
+    // Calculate room count
+    function calculateRooms() {
+        const totalStudents = parseInt(document.getElementById('id_total_students').value) || 0;
+        const studentsPerRoom = parseInt(document.getElementById('id_students_per_room').value) || 1;
+        const roomCount = Math.ceil(totalStudents / studentsPerRoom);
+        document.getElementById('roomCount').textContent = roomCount;
+    }
+
+    document.getElementById('id_total_students').addEventListener('input', calculateRooms);
+    document.getElementById('id_students_per_room').addEventListener('input', calculateRooms);
+    calculateRooms(); // Initial calculation
+
+    // Staff data (combining supervisors and invigilators)
+    const staffMembers = {
+        {% for sup in form.first_supervisor.field.queryset %}
+        {{ sup.id }}: {
+            name: "{{ sup.name }}",
+            department: "{{ sup.department }}",
+            degree: "{{ sup.academic_degree }}",
+            avatar: "{{ sup.name|slice:'1'|upper }}",
+            type: "{{ sup.is_supervisor|yesno:'Supervisor,Invigilator' }}"
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    };
+
+    function updateStaffInfo(selectElement, infoElement) {
+        const selectedId = selectElement.value;
+        if (selectedId && staffMembers[selectedId]) {
+            const staff = staffMembers[selectedId];
+            const typeBadgeClass = staff.type === 'Supervisor' ? 'bg-primary' : 'bg-secondary';
+            
+            infoElement.innerHTML = `
+                <div class="card supervisor-card">
+                    <div class="card-body p-3">
+                        <div class="d-flex align-items-center">
+                            <div class="avatar avatar-sm supervisor-avatar ${typeBadgeClass} rounded-circle me-3 d-flex align-items-center justify-content-center">
+                                <span class="text-white">${staff.avatar}</span>
+                            </div>
+                            <div>
+                                <h6 class="mb-0 d-flex align-items-center">
+                                    ${staff.name}
+                                    <span class="badge ${typeBadgeClass} staff-type-badge">${staff.type}</span>
+                                </h6>
+                                <small class="text-muted">${staff.degree}, ${staff.department}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else {
+            infoElement.innerHTML = '';
+        }
+    }
+
+    function checkStaffConflict() {
+        // Reset conflict state
+        conflictAlert.classList.add('d-none');
+        conflictCard.classList.add('d-none');
+        submitBtn.disabled = false;
+        
+        // Check if same staff selected
+        if (firstSupervisor.value && secondSupervisor.value && firstSupervisor.value === secondSupervisor.value) {
+            conflictMessage.textContent = 'First and second supervisors/invigilators cannot be the same person';
+            conflictAlert.classList.remove('d-none');
+            submitBtn.disabled = true;
+            return;
+        }
+
+        // Check for schedule conflicts (AJAX call would go here)
+        if (firstSupervisor.value && examDate.value && examPeriod.value) {
+            // Simulate checking for conflicts
+            const hasConflict = Math.random() > 0.7; // Replace with actual check
+            
+            if (hasConflict) {
+                const staff = staffMembers[firstSupervisor.value];
+                conflictMessage.textContent = `This ${staff.type.toLowerCase()} is already assigned to another exam at the same time`;
+                conflictAlert.classList.remove('d-none');
+                
+                // Show detailed conflict information
+                conflictDetails.innerHTML = `
+                    <div class="col-md-6">
+                        <div class="card supervisor-card conflict">
+                            <div class="card-body">
+                                <h6><i class="fas fa-user-tie text-danger me-2"></i>${staff.type} Conflict</h6>
+                                <p class="mb-1"><strong>Name:</strong> ${staff.name}</p>
+                                <p class="mb-1"><strong>Current Assignment:</strong></p>
+                                <ul>
+                                    <li>Course: COMP 304 (Data Structures)</li>
+                                    <li>Date: ${examDate.value}</li>
+                                    <li>Period: ${examPeriod.options[examPeriod.selectedIndex].text}</li>
+                                    <li>Room: F12</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="alert alert-warning h-100">
+                            <h6><i class="fas fa-info-circle me-2"></i>Resolution Options</h6>
+                            <p>Please select a different ${staff.type.toLowerCase()} or change the exam schedule.</p>
+                            <button class="btn btn-sm btn-outline-primary me-2">View ${staff.type} Schedule</button>
+                            <button class="btn btn-sm btn-outline-secondary">Find Available ${staff.type}s</button>
+                        </div>
+                    </div>
+                `;
+                conflictCard.classList.remove('d-none');
+                submitBtn.disabled = true;
+            }
+        }
+    }
+
+    // Get form elements
+    const firstSupervisor = document.getElementById('id_first_supervisor');
+    const secondSupervisor = document.getElementById('id_second_supervisor');
+    const examDate = document.getElementById('id_exam_date');
+    const examPeriod = document.getElementById('id_exam_period');
+    const conflictAlert = document.getElementById('supervisorConflictAlert');
+    const conflictCard = document.getElementById('supervisorConflictCard');
+    const conflictMessage = document.getElementById('conflictMessage');
+    const conflictDetails = document.getElementById('conflictDetails');
+    const submitBtn = document.getElementById('submitBtn');
+
+    // Initialize staff info displays
+    updateStaffInfo(firstSupervisor, document.getElementById('firstSupervisorInfo'));
+    updateStaffInfo(secondSupervisor, document.getElementById('secondSupervisorInfo'));
+
+    // Set up event listeners
+    firstSupervisor.addEventListener('change', function() {
+        updateStaffInfo(firstSupervisor, document.getElementById('firstSupervisorInfo'));
+        checkStaffConflict();
+    });
+    
+    secondSupervisor.addEventListener('change', function() {
+        updateStaffInfo(secondSupervisor, document.getElementById('secondSupervisorInfo'));
+        checkStaffConflict();
+    });
+    
+    examDate.addEventListener('change', checkStaffConflict);
+    examPeriod.addEventListener('change', checkStaffConflict);
+
+    // Highlight today's date
+    const today = new Date().toISOString().split('T')[0];
+    if (examDate.value === today) {
+        examDate.classList.add('date-highlight');
+    }
+    examDate.addEventListener('change', function() {
+        if (this.value === today) {
+            this.classList.add('date-highlight');
+        } else {
+            this.classList.remove('date-highlight');
+        }
+    });
+});
+</script>
+{% endblock %}

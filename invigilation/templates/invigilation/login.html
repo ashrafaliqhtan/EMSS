@@ -1,0 +1,80 @@
+{% extends 'main.html' %} {% block title %} Login - Examination Invigilator
+Allocation System {% endblock %} {% block content %}
+<main>
+	<div class="container">
+		<section class="vh-100">
+			<div class="container py-5 h-100">
+				<div
+					class="row d-flex align-items-center justify-content-center h-100">
+					<div class="d-flex justify-content-center py-4">
+						<a
+							href="{% url 'home' %}"
+							title="Homepage"
+							class="logo d-flex align-items-center w-auto">
+							<span
+								style="font-size: 40px; color: green"
+								class="d-none d-lg-block"
+								>Examination Invigilator Allocation System</span
+							>
+						</a>
+					</div>
+					<div class="col-md-8 col-lg-7 col-xl-6">
+						<img
+							src="https://cdni.iconscout.com/illustration/premium/thumb/login-3305943-2757111.png"
+							class="img-fluid"
+							alt="Phone image" />
+					</div>
+					<div class="card shadow p-3 col-lg-5 col-xl-5 offset-xl-1">
+						<div class="pt-4 pb-2">
+							<h5 class="card-title text-center pb-0 fs-4">
+								Login to Your Account
+							</h5>
+							<p class="text-center small">
+								Enter your username & password to login
+							</p>
+						</div>
+						<form action="" method="POST">
+							{% csrf_token %}
+							<!-- Username input -->
+							<div class="form-outline mb-4">
+								<label class="form-label" for="usr"
+									>Username</label
+								>
+								<input
+									type="text"
+									id="usr"
+									name="username"
+									class="form-control form-control-lg" />
+							</div>
+
+							<!-- Password input -->
+							<div class="form-outline mb-4">
+								<label class="form-label" for="pwd"
+									>Password</label
+								>
+								<input
+									type="password"
+									id="pwd"
+									name="password"
+									class="form-control form-control-lg" />
+							</div>
+							<!-- Submit button -->
+							<button
+								type="submit"
+								class="btn btn-success w-100 btn-lg btn-block">
+								Login
+							</button>
+						</form>
+<!-- Sign Up link -->
+						<p class="mt-3 text-center">
+							Don't have an account? <a href="{% url 'signup' %}">Sign up here</a>.
+						</p>
+					</div>
+				</div>
+			</div>
+		</section>
+	</div>
+</main>
+<!-- End #main -->
+
+{% endblock %}

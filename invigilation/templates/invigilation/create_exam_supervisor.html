@@ -1,0 +1,137 @@
+{% extends 'invigilation/based.html' %}
+{% load widget_tweaks %}
+
+{% block title %}Create Exam Supervisor{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-card {
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+    }
+    .card-header {
+        background-color: #2c3e50;
+        color: white;
+        border-radius: 8px 8px 0 0 !important;
+    }
+    .required-field::after {
+        content: " *";
+        color: red;
+    }
+    .btn-submit {
+        min-width: 120px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card form-card mb-4">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3 class="mb-0">
+                            <i class="fas fa-user-plus me-2"></i>Create Exam Supervisor
+                        </h3>
+                        <a href="{% url 'exam_supervisor_panel' %}" class="btn btn-sm btn-light">
+                            <i class="fas fa-arrow-left me-1"></i> Back to Panel
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        {% if form.errors %}
+                        <div class="alert alert-danger alert-dismissible fade show mb-4">
+                            <strong><i class="fas fa-exclamation-circle me-2"></i>Form Errors:</strong>
+                            Please correct the errors below.
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                        {% endif %}
+
+                        <div class="row g-3">
+                            <!-- Department Field -->
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.department.id_for_label }}" class="form-label required-field">
+                                        <i class="fas fa-building me-1"></i> Department
+                                    </label>
+                                    {% render_field form.department class="form-control" %}
+                                    <div class="invalid-feedback">Please select a department.</div>
+                                    {% if form.department.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {{ form.department.errors|join:", " }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Academic Degree Field -->
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.academic_degree.id_for_label }}" class="form-label required-field">
+                                        <i class="fas fa-graduation-cap me-1"></i> Academic Degree
+                                    </label>
+                                    {% render_field form.academic_degree class="form-control" %}
+                                    <div class="invalid-feedback">Please enter academic degree.</div>
+                                    {% if form.academic_degree.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {{ form.academic_degree.errors|join:", " }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Name Field -->
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label for="{{ form.name.id_for_label }}" class="form-label required-field">
+                                        <i class="fas fa-user me-1"></i> Full Name
+                                    </label>
+                                    {% render_field form.name class="form-control" placeholder="Enter supervisor full name" %}
+                                    <div class="invalid-feedback">Please enter the supervisor's name.</div>
+                                    {% if form.name.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {{ form.name.errors|join:", " }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4 pt-3 border-top">
+                            <button type="submit" class="btn btn-success btn-submit">
+                                <i class="fas fa-save me-2"></i> Create Supervisor
+                            </button>
+                            <a href="{% url 'exam_supervisor_panel' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Enable Bootstrap form validation
+    const forms = document.querySelectorAll('.needs-validation');
+    
+    Array.from(forms).forEach(function(form) {
+        form.addEventListener('submit', function(event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        }, false);
+    });
+});
+</script>
+{% endblock %}

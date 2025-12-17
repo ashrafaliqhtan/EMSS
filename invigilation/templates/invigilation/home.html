@@ -1,0 +1,33 @@
+{% extends 'main.html' %} {% block title %} Index - Examination Invigilator
+Allocation System {% endblock %} {% block content %}
+
+<div class="justify-content-center items-center">
+	<header class="masthead vh-100">
+		<div class="container">
+			<div class="masthead-subheading">
+				Automate the process of examination duties to invigilator
+			</div>
+			<div class="masthead-heading text-uppercase">
+				Invigilator Allocation System
+			</div>
+			<a href="{% url 'login' %}"
+				><input
+					class="btn btn-lg btn-outline-success"
+					value="Get Started"
+			/></a>
+		</div>
+	</header>
+</div>
+
+<!-- <div class="text-center">
+	<h1>Invigilator Allocation System</h1>
+	<h6>Automate the process of examination duties to invigilator</h6>
+</div> -->
+
+<!-- <div class="text-center mt-4">
+	<a href="{% url 'login' %}">
+		<input class="btn btn-lg btn-outline-success" value="Get Started" />
+	</a>
+</div> -->
+
+{% endblock %}

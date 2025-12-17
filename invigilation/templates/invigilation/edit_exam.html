@@ -1,0 +1,57 @@
+{% extends 'invigilation/based.html' %}
+{% load widget_tweaks %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-lg">
+        <div class="card-header bg-warning text-white">
+            <h3 class="mb-0">Edit Exam</h3>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    {{ form.exam_name.label_tag }}
+                    {{ form.exam_name|add_class:"form-control" }}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.exam_date.label_tag }}
+                    {{ form.exam_date|add_class:"form-control" }}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.exam_hall.label_tag }}
+                    {{ form.exam_hall|add_class:"form-select" }}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.exam_type.label_tag }}
+                    {{ form.exam_type|add_class:"form-select" }}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.exam_period.label_tag }}
+                    {{ form.exam_period|add_class:"form-control" }}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.invigilator1.label_tag }}
+                    {{ form.invigilator1|add_class:"form-select" }}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.invigilator2.label_tag }}
+                    {{ form.invigilator2|add_class:"form-select" }}
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100">Update Exam</button>
+            </form>
+        </div>
+    </div>
+    <div class="text-center mt-3">
+        <a href="{% url 'exam_list' %}" class="btn btn-outline-secondary">Back to Exam List</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends 'invigilation/based.html' %}
+{% block content %}
+<!-- In your template where the delete modal appears -->
+<div class="modal fade" id="deleteModal{{ lecturer.pk }}" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>You are about to delete:</p>
+                <div class="alert alert-warning">
+                    <strong>{{ lecturer.lecturer_name }}</strong><br>
+                    <small>{{ lecturer.lecturer_code }}</small>
+                </div>
+                <p class="text-danger">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="POST" action="{% url 'delete_lecturer' lecturer.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash"></i> Confirm Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

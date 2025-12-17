@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-lg">
+        <div class="card-header bg-info text-white">
+            <h3>Bulk Upload Exams</h3>
+        </div>
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="exams_csv" class="form-label">Upload CSV File</label>
+                    <input type="file" class="form-control" id="exams_csv" name="exams_csv" accept=".csv" required>
+                </div>
+                <button type="submit" class="btn btn-success w-100">Upload Exams</button>
+            </form>
+        </div>
+        <div class="card-footer text-center">
+            <a href="{% url 'exam_list' %}" class="btn btn-secondary">Back to Exam List</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,216 @@
+{% extends './activity.html' %} {% comment %} Dashboard Screen {% endcomment %}
+{% block activity_screen %}
+<main id="main" class="main pt-0 mt-4">
+	<div class="pagetitle">
+		<h1>Dashboard</h1>
+		<nav>
+			<ol class="breadcrumb">
+				<li class="breadcrumb-item">
+					<a href="{% url 'dashboard' %}">Home</a>
+				</li>
+				<li class="breadcrumb-item active">Dashboard</li>
+			</ol>
+		</nav>
+	</div>
+	<section class="section dashboard">
+		<div class="row">
+			<!-- Activity columns -->
+			<div class="col-lg-12">
+				<div class="row">
+					<!-- Exam Halls Card -->
+					<div class="col-md-4">
+						<div class="card info-card sales-card">
+							<div class="card-body">
+								<h5 class="card-title">
+									Exam Halls <span>| Total</span>
+								</h5>
+								<div class="d-flex align-items-center">
+									<div
+										class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+										<i class="bi bi-house"></i>
+									</div>
+									<div class="ps-3">
+										<h6>{{ total_halls }}</h6>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<!-- End Exam Hall Card -->
+
+					<!-- Lecturers Card -->
+					<div class="col-md-4">
+						<div class="card info-card revenue-card">
+							<div class="card-body">
+								<h5 class="card-title">
+									Lecturers <span>| Total</span>
+								</h5>
+
+								<div class="d-flex align-items-center">
+									<div
+										class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+										<i class="bi bi-people"></i>
+									</div>
+									<div class="ps-3">
+										<h6>{{total_lecturers}}</h6>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<!-- End Lecturers Card -->
+
+					<!-- Blocks Card -->
+					<div class="col-md-4">
+						<div class="card info-card customers-card">
+							<div class="card-body">
+								<h5 class="card-title">
+									Exam Blocks <span>| Total</span>
+								</h5>
+
+								<div class="d-flex align-items-center">
+									<div
+										class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+										<i class="bi bi-people"></i>
+									</div>
+									<div class="ps-3">
+										<h6>{{total_blocks}}</h6>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<!-- End Blocks Card -->
+
+					<!-- PBE Lecturers Card -->
+					<div class="col-md-4">
+						<div class="card info-card revenue-card">
+							<div class="card-body">
+								<h5 class="card-title">
+									PBE Lecturers <span>| Total</span>
+								</h5>
+
+								<div class="d-flex align-items-center">
+									<div
+										class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+										<i class="bi bi-people"></i>
+									</div>
+									<div class="ps-3">
+										<h6>{{ pbe_lecturers }}</h6>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<!-- PBE Invigilators -->
+					<div class="col-md-4">
+						<div class="card info-card revenue-card">
+							<div class="card-body">
+								<h5 class="card-title">
+									PBE Invigilators <span>| Total</span>
+								</h5>
+
+								<div class="d-flex align-items-center">
+									<div
+										class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+										<i class="bi bi-people"></i>
+									</div>
+									<div class="ps-3">
+										<h6>{{ pbe_invigilators }}</h6>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<!-- Supervisors card -->
+					<div class="col-md-4">
+						<div class="card info-card customers-card">
+							<div class="card-body">
+								<h5 class="card-title">
+									PBE Supervisors <span>| Total</span>
+								</h5>
+
+								<div class="d-flex align-items-center">
+									<div
+										class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+										<i class="bi bi-people"></i>
+									</div>
+									<div class="ps-3">
+										<h6>{{pbe_supervisors}}</h6>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<!-- End PBE Lecturers Card -->
+
+					<!-- CBE Lecturers Card -->
+					<div class="col-md-4">
+						<div class="card info-card sales-card">
+							<div class="card-body">
+								<h5 class="card-title">
+									CBE Lecturers <span>| Total</span>
+								</h5>
+
+								<div class="d-flex align-items-center">
+									<div
+										class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+										<i class="bi bi-people"></i>
+									</div>
+									<div class="ps-3">
+										<h6>{{ cbe_lecturers }}</h6>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<!-- CBE Invigilators -->
+					<div class="col-md-4">
+						<div class="card info-card sales-card">
+							<div class="card-body">
+								<h5 class="card-title">
+									CBE Invigilators <span>| Total</span>
+								</h5>
+
+								<div class="d-flex align-items-center">
+									<div
+										class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+										<i class="bi bi-people"></i>
+									</div>
+									<div class="ps-3">
+										<h6>{{cbe_invigilatos}}</h6>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- CBE Supervisors -->
+					<div class="col-md-4">
+						<div class="card info-card customers-card">
+							<div class="card-body">
+								<h5 class="card-title">
+									CBE Supervisors <span>| Total</span>
+								</h5>
+
+								<div class="d-flex align-items-center">
+									<div
+										class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+										<i class="bi bi-people"></i>
+									</div>
+									<div class="ps-3">
+										<h6>{{cbe_supervisors}}</h6>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<!-- End Blocks Card -->
+					<!-- End CBE Lecturers Card -->
+				</div>
+			</div>
+			<!-- End Activity columns -->
+		</div>
+	</section>
+	{% endblock activity_screen %}
+</main>

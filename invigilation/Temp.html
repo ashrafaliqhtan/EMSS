@@ -1,0 +1,847 @@
+
+{% load notification_tags %}
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Invigilation Management Pro</title>
+    
+    <!-- Core CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@7.2.96/css/materialdesignicons.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --success: #06d6a0;
+            --info: #4895ef;
+            --warning: #ffd166;
+            --danger: #ef476f;
+            --dark: #2b2d42;
+            --light: #f8f9fa;
+            --sidebar-width: 280px;
+            --header-height: 64px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--light);
+            overflow-x: hidden;
+        }
+
+        /* Enhanced Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            position: fixed;
+            background: linear-gradient(195deg, var(--dark) 0%, #1a1b27 100%);
+            color: white;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-brand {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-link {
+            color: #aeb4be;
+            padding: 0.75rem 1.5rem;
+            margin: 0.25rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            transform: translateX(8px);
+        }
+
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 3px;
+            background: var(--primary);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .nav-link.active {
+            background: rgba(var(--primary-rgb), 0.1);
+            color: var(--primary) !important;
+            font-weight: 500;
+        }
+
+        .nav-link.active::before {
+            opacity: 1;
+        }
+
+        /* Main Content Area */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+            transition: all 0.3s ease;
+            padding-top: var(--header-height);
+        }
+
+        /* Advanced Navbar */
+        .navbar {
+            height: var(--header-height);
+            background: rgba(255, 255, 255, 0.97);
+            backdrop-filter: blur(10px);
+            position: fixed;
+            top: 0;
+            right: 0;
+            left: var(--sidebar-width);
+            z-index: 999;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+            padding: 0 1.5rem;
+        }
+
+        /* Statistics Cards */
+        .stats-card {
+            border: none;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            background: linear-gradient(135deg, var(--card-bg) 0%, rgba(var(--card-bg-rgb), 0.9) 100%);
+            color: var(--card-color);
+        }
+
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .stats-card .card-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 992px) {
+            .sidebar {
+                margin-left: calc(-1 * var(--sidebar-width));
+            }
+
+            .sidebar.active {
+                margin-left: 0;
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .navbar {
+                left: 0;
+            }
+        }
+
+        /* Dark Mode */
+        [data-bs-theme="dark"] {
+            --dark: #121212;
+            --light: #1e1e1e;
+        }
+
+        /* Advanced Data Tables */
+        .data-table {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .data-table th {
+            font-weight: 600;
+            background: #f8f9fa;
+        }
+
+        /* Custom Form Elements */
+        .form-control-custom {
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+
+        .form-control-custom:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+        }
+
+        /* Floating Action Button */
+        .fab-button {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 4px;
+        }
+
+        /* Animation Keyframes */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        /* Advanced Dropdown */
+        .dropdown-menu {
+            border-radius: 8px;
+            border: none;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            padding: 0.5rem;
+        }
+
+        /* Timeline */
+        .timeline {
+            position: relative;
+            padding-left: 2rem;
+            border-left: 2px solid #e9ecef;
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-left: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -11px;
+            top: 4px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--primary);
+            border: 3px solid white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay d-flex align-items-center justify-content-center">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+
+    <div class="wrapper">
+        <!-- Sidebar -->
+        <nav id="sidebar" class="sidebar">
+            <div class="sidebar-brand">
+                <div class="d-flex align-items-center">
+                    <img src="logo.svg" alt="Logo" style="height: 32px;" class="me-2">
+                    <div>
+                        <h4 class="mb-0">Invigilation Pro</h4>
+                        <small class="text-muted">v2.1.0</small>
+                    </div>
+                </div>
+            </div>
+            
+            <ul class="nav flex-column px-3 pt-4">
+                <li class="nav-item">
+                    <a class="nav-link active" href="{% url 'dashboard' %}">
+                        <i class="fas fa-tachometer-alt me-3"></i> Dashboard
+                    </a>
+                </li>
+
+                <!-- Exam Invigilator assignement System -->
+                <li class="nav-item mt-3">
+                    <small class="text-uppercase text-muted ps-3">Exam Invigilator assignement System</small>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'exam_list' %}">
+                        <i class="fas fa-clipboard-list me-3"></i> All Exams
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'create_exam' %}">
+                        <i class="fas fa-plus-circle me-3"></i> Create Exam
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'upload_exams' %}">
+                        <i class="fas fa-file-import me-3"></i> Bulk Upload
+                    </a>
+                </li>
+
+                <!-- Resource Management -->
+                <li class="nav-item mt-3">
+                    <small class="text-uppercase text-muted ps-3">Resource Management</small>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'halls' %}">
+                        <i class="fas fa-building me-3"></i> Halls
+                        <span class="badge bg-primary float-end">{{ total_halls }}</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'lecturers' %}">
+                        <i class="fas fa-chalkboard-teacher me-3"></i> Lecturers
+                        <span class="badge bg-success float-end">{{ total_lecturers }}</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'exam_hall_panel' %}">
+                        <i class="fas fa-university me-3"></i> Exam Halls
+                        <span class="badge bg-info float-end">{{ exam_halls_count }}</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'exam_supervisor_panel' %}">
+                        <i class="fas fa-user-shield me-3"></i> Supervisors
+                        <span class="badge bg-warning float-end">{{ supervisors_count }}</span>
+                    </a>
+                </li>
+
+                <!-- System Management -->
+                <li class="nav-item mt-3">
+                    <small class="text-uppercase text-muted ps-3">System</small>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'schedule' %}">
+                        <i class="fas fa-calendar-alt me-3"></i> Schedule
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'signup' %}">
+                        <i class="fas fa-user-plus me-3"></i> User Management
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">
+                        <i class="fas fa-cog me-3"></i> Settings
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Navbar -->
+            <nav class="navbar navbar-expand-lg">
+                <div class="container-fluid">
+                    <button id="sidebarToggle" class="btn btn-link p-0">
+                        <i class="fas fa-bars fa-lg"></i>
+                    </button>
+
+                    <!-- Search -->
+                    <div class="d-flex align-items-center flex-grow-1 mx-4">
+                        <div class="input-group input-group-sm rounded-pill bg-light">
+                            <span class="input-group-text border-0 bg-transparent">
+                                <i class="fas fa-search text-muted"></i>
+                            </span>
+                            <input type="search" class="form-control border-0 bg-transparent" 
+                                   placeholder="Search...">
+                        </div>
+                    </div>
+
+                    <!-- Right Controls -->
+                    <div class="d-flex align-items-center">
+                        <!-- Notifications -->
+                        
+         <!-- في شريط التنقل -->
+<li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle" href="#" role="button" 
+       data-bs-toggle="dropdown" aria-expanded="false">
+        <i class="fas fa-bell"></i>
+
+
+
+<!-- في السطر 400 -->
+<span class="badge bg-danger">{% get_unread_notifications_count request.user %}</span>
+
+    </a>
+    <div class="dropdown-menu dropdown-menu-end p-3" style="min-width: 400px;">
+        <h6 class="dropdown-header">الإشعارات الحديثة</h6>
+        <div class="list-group">
+{% for notification in request.user.invigilation_notifs.all|slice:":5" %}
+            <a href="{{ notification.link|default:'#' }}" 
+               class="list-group-item list-group-item-action small {% if not notification.read %}bg-light{% endif %}">
+                {{ notification.message }}
+                <small class="text-muted d-block">{{ notification.created_at|timesince }}</small>
+            </a>
+            {% empty %}
+            <div class="text-muted small p-2">لا توجد إشعارات جديدة</div>
+            {% endfor %}
+        </div>
+        <div class="dropdown-divider"></div>
+        <a class="dropdown-item text-center" href="{% url 'notifications_list' %}">
+            عرض جميع الإشعارات
+        </a>
+    </div>
+</li>               
+                        
+<div class="dropdown me-3">
+    <a class="btn btn-link position-relative" href="#" role="button" 
+       data-bs-toggle="dropdown">
+        <i class="fas fa-bell"></i>
+        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger notification-badge">
+            {{ request.notifications.count }}
+        </span>
+    </a>
+    {% include 'notifications/notification_dropdown.html' %}
+</div>
+
+                        <!-- User Menu -->
+                        {% if user.is_authenticated %}
+                        <div class="dropdown">
+                            <a class="d-flex align-items-center text-decoration-none" href="#" 
+                               data-bs-toggle="dropdown">
+                                <div class="avatar avatar-sm bg-primary text-white rounded-circle">
+                                    {{ user.username|first|upper }}
+                                </div>
+                                <div class="ms-2 d-none d-lg-block">
+                                    <div class="fw-medium">{{ user.username }}</div>
+                                    <small class="text-muted">Administrator</small>
+                                </div>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="#">
+                                    <i class="fas fa-user me-2"></i>Profile
+                                </a></li>
+                                <li><a class="dropdown-item" href="#">
+                                    <i class="fas fa-cog me-2"></i>Settings
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="{% url 'logout' %}">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Logout
+                                </a></li>
+                            </ul>
+                        </div>
+                        {% else %}
+                        <a href="{% url 'login' %}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-sign-in-alt me-2"></i>Login
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Main Content -->
+            <div class="container-fluid p-4">
+                <!-- Dashboard Header -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h1 class="h3 mb-0">Dashboard Overview</h1>
+                        <small class="text-muted">Welcome back, {{ user.username }}</small>
+                    </div>
+                    <div class="d-flex">
+                        <button class="btn btn-light me-2">
+                            <i class="fas fa-download"></i> Export
+                        </button>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#quickActionModal">
+                            <i class="fas fa-plus me-2"></i> Quick Action
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Statistics Grid -->
+                <div class="row g-4 mb-4">
+                    <div class="col-xxl-3 col-md-6">
+                        <div class="stats-card bg-primary text-white animate-fade-in">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="text-uppercase small mb-2">Total Halls</h6>
+                                        <h2 class="mb-0">{{ total_halls }}</h2>
+                                    </div>
+                                    <div class="card-icon">
+                                        <i class="fas fa-building fa-lg"></i>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <div class="progress bg-primary bg-opacity-25" style="height: 4px;">
+                                        <div class="progress-bar bg-white" style="width: 75%"></div>
+                                    </div>
+                                    <small class="opacity-75">Last updated: 2h ago</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Additional Stats Cards -->
+                    <!-- ... (Repeat for other statistics) ... -->
+                </div>
+
+                <!-- Data Tables -->
+                <div class="row g-4">
+                    <!-- Upcoming Exams -->
+                    <div class="col-lg-8">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                    <h5 class="card-title mb-0">Upcoming Exams</h5>
+                                    <a href="{% url 'exam_list' %}" class="btn btn-link">
+                                        View All <i class="fas fa-arrow-right"></i>
+                                    </a>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Exam Name</th>
+                                                <th>Date</th>
+                                                <th>Hall</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for exam in upcoming_exams %}
+                                            <tr>
+                                                <td>{{ exam.name }}</td>
+                                                <td>{{ exam.date }}</td>
+                                                <td>{{ exam.hall }}</td>
+                                                <td>
+                                                    <span class="badge bg-success">Scheduled</span>
+                                                </td>
+                                                <td>
+                                                    <div class="d-flex gap-2">
+                                                        <a href="{% url 'edit_exam' exam.id %}" class="btn btn-sm btn-light">
+                                                            <i class="fas fa-edit"></i>
+                                                        </a>
+                                                        <a href="{% url 'exam_detail' exam.id %}" class="btn btn-sm btn-primary">
+                                                            <i class="fas fa-eye"></i>
+                                                        </a>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Stats -->
+                    <div class="col-lg-4">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body">
+                                <h5 class="card-title mb-4">Quick Statistics</h5>
+                                <div class="timeline">
+                                    <div class="timeline-item">
+                                        <h6 class="mb-1">New Invigilators</h6>
+                                        <p class="text-muted small mb-0">5 new invigilators added</p>
+                                        <small class="text-muted">2 hours ago</small>
+                                    </div>
+                                    <!-- More timeline items -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Management Panels -->
+                <div class="row g-4 mt-4">
+                    <!-- Hall Management -->
+                    <div class="col-lg-6">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                    <h5 class="card-title mb-0">Hall Management</h5>
+                                    <div class="d-flex gap-2">
+                                        <a href="{% url 'create_hall' %}" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-plus me-2"></i>Add Hall
+                                        </a>
+                                        <a href="{% url 'upload_hall' %}" class="btn btn-sm btn-success">
+                                            <i class="fas fa-file-upload"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="row g-3">
+                                    {% for hall in recent_halls %}
+                                    <div class="col-md-6">
+                                        <div class="card border-0 bg-light">
+                                            <div class="card-body">
+                                                <div class="d-flex justify-content-between">
+                                                    <div>
+                                                        <h6 class="mb-0">{{ hall.name }}</h6>
+                                                        <small class="text-muted">{{ hall.capacity }} seats</small>
+                                                    </div>
+                                                    <div class="dropdown">
+                                                        <a href="#" class="btn btn-link" data-bs-toggle="dropdown">
+                                                            <i class="fas fa-ellipsis-v"></i>
+                                                        </a>
+                                                        <ul class="dropdown-menu">
+                                                            <li><a class="dropdown-item" href="{% url 'edit_hall' hall.id %}">
+                                                                <i class="fas fa-edit me-2"></i>Edit
+                                                            </a></li>
+                                                            <li><a class="dropdown-item text-danger" href="#">
+                                                                <i class="fas fa-trash me-2"></i>Delete
+                                                            </a></li>
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Lecturer Management -->
+                    <div class="col-lg-6">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                    <h5 class="card-title mb-0">Lecturers</h5>
+                                    <div class="d-flex gap-2">
+                                        <a href="{% url 'create_lecturer' %}" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-plus me-2"></i>Add Lecturer
+                                        </a>
+                                        <a href="{% url 'upload_lecturers' %}" class="btn btn-sm btn-success">
+                                            <i class="fas fa-file-upload"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="list-group">
+                                    {% for lecturer in recent_lecturers %}
+                                    <div class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h6 class="mb-0">{{ lecturer.name }}</h6>
+                                                <small class="text-muted">{{ lecturer.department }}</small>
+                                            </div>
+                                            <div class="dropdown">
+                                                <a href="#" class="btn btn-link" data-bs-toggle="dropdown">
+                                                    <i class="fas fa-ellipsis-v"></i>
+                                                </a>
+                                                <ul class="dropdown-menu">
+                                                    <li><a class="dropdown-item" href="{% url 'edit_lecturer' lecturer.id %}">
+                                                        <i class="fas fa-edit me-2"></i>Edit
+                                                    </a></li>
+                                                    <li><a class="dropdown-item text-danger" href="#">
+                                                        <i class="fas fa-trash me-2"></i>Delete
+                                                    </a></li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <footer class="mt-5 pt-4 border-top">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p class="text-muted small">&copy; 2023 Invigilation Pro. v2.1.0</p>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <div class="d-inline-flex gap-3">
+                                <a href="#" class="text-muted small">Privacy</a>
+                                <a href="#" class="text-muted small">Terms</a>
+                                <a href="#" class="text-muted small">Support</a>
+                            </div>
+                        </div>
+                    </div>
+                </footer>
+            </div>
+        </div>
+
+        <!-- Quick Action Modal -->
+        <div class="modal fade" id="quickActionModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Quick Actions</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <a href="{% url 'create_exam' %}" class="btn btn-primary w-100">
+                                    <i class="fas fa-plus me-2"></i>New Exam
+                                </a>
+                            </div>
+                            <div class="col-md-6">
+                                <a href="{% url 'schedule' %}" class="btn btn-success w-100">
+                                    <i class="fas fa-calendar me-2"></i>View Schedule
+                                </a>
+                            </div>
+                            <!-- More quick actions -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Floating Action Button -->
+        <button class="fab-button btn btn-primary">
+            <i class="fas fa-plus"></i>
+        </button>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Sidebar Toggle
+        document.getElementById('sidebarToggle').addEventListener('click', () => {
+            document.getElementById('sidebar').classList.toggle('active');
+            document.querySelector('.main-content').classList.toggle('active');
+        });
+
+        // Dark Mode Toggle
+        const themeToggle = document.createElement('button');
+        themeToggle.className = 'btn btn-link text-dark';
+        themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+        document.querySelector('.navbar').appendChild(themeToggle);
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-bs-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-bs-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            themeToggle.innerHTML = newTheme === 'dark' 
+                ? '<i class="fas fa-sun"></i>' 
+                : '<i class="fas fa-moon"></i>';
+        });
+
+        // Initialize theme
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-bs-theme', savedTheme);
+        themeToggle.innerHTML = savedTheme === 'dark' 
+            ? '<i class="fas fa-sun"></i>' 
+            : '<i class="fas fa-moon"></i>';
+
+        // Loading Simulation
+        window.addEventListener('load', () => {
+            document.querySelector('.loading-overlay').style.display = 'none';
+        });
+
+        // Table Filtering
+        document.querySelectorAll('.data-table input[type="search"]').forEach(input => {
+            input.addEventListener('input', (e) => {
+                const filter = e.target.value.toLowerCase();
+                document.querySelectorAll('.data-table tbody tr').forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    row.style.display = text.includes(filter) ? '' : 'none';
+                });
+            });
+        });
+    </script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // تحديث العداد تلقائيًا كل 30 ثانية
+    setInterval(updateNotificationCount, 30000);
+    
+    // تحديث حالة القراءة عند النقر
+    document.querySelectorAll('.notification-item').forEach(item => {
+        item.addEventListener('click', function() {
+            if (!this.classList.contains('read')) {
+                fetch(`/notifications/mark-read/${this.dataset.id}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    }
+                });
+            }
+        });
+    });
+});
+
+function updateNotificationCount() {
+    fetch('/notifications/count/')
+        .then(response => response.json())
+        .then(data => {
+            document.querySelectorAll('.notification-badge').forEach(badge => {
+                badge.textContent = data.count;
+            });
+        });
+}
+</script>    
+   <!-- في base.html قبل </body> -->
+<script>
+const notificationSocket = new WebSocket(
+    'ws://' + window.location.host + '/ws/notifications/'
+);
+
+notificationSocket.onmessage = function(e) {
+    const data = JSON.parse(e.data);
+    const notificationList = document.getElementById('notification-list');
+    
+    const newNotification = `
+        <a href="${data.link || '#'}" 
+           class="list-group-item list-group-item-action small py-2 notification-item bg-light" 
+           data-id="${data.id}">
+            <div class="d-flex align-items-center">
+                <div class="me-2">
+                    <i class="fas fa-bell text-primary"></i>
+                </div>
+                <div>
+                    ${data.message}
+                    <div class="text-muted small">${new Date().toLocaleTimeString()}</div>
+                </div>
+            </div>
+        </a>
+    `;
+    
+    notificationList.insertAdjacentHTML('afterbegin', newNotification);
+    
+    // تحديث العداد
+    const badge = document.querySelector('.notification-badge');
+    const currentCount = parseInt(badge.textContent) || 0;
+    badge.textContent = currentCount + 1;
+};
+</script> 
+    
+    
+</body>
+</html>

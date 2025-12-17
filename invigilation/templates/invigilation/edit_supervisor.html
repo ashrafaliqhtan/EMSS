@@ -1,0 +1,15 @@
+{% extends './activity.html' %}
+
+{% block content %}
+<div class="container mt-4">
+  <h1>Edit Supervisor Allocation</h1>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <div class="mt-3">
+      <button type="submit" class="btn btn-primary">Save Changes</button>
+      <a href="{% url 'schedule' %}" class="btn btn-secondary">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

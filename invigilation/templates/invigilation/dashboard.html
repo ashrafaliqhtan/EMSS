@@ -1,0 +1,950 @@
+{% extends 'invigilation/based.html' %}
+{% load dashboard_extras %}
+{% load exam_tags %}
+{% block title %}Dashboard - Invigilation System{% endblock %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <!-- Header with Quick Actions -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="mb-0">Invigilation Dashboard</h1>
+            <p class="text-muted mb-0">Welcome back, {{ request.user.get_full_name|default:request.user.username }}</p>
+        </div>
+        <div class="d-flex">
+            <a href="{% url 'create_exam' %}" class="btn btn-primary me-2">
+                <i class="fas fa-plus me-1"></i> New Exam
+            </a>
+            <div class="dropdown">
+                <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="quickActions" data-bs-toggle="dropdown">
+                    <i class="fas fa-bolt me-1"></i> Quick Actions
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="{% url 'upload_lecturers' %}"><i class="fas fa-upload me-2"></i>Upload Lecturers</a></li>
+                    <li><a class="dropdown-item" href="{% url 'upload_hall' %}"><i class="fas fa-upload me-2"></i>Upload Halls</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="{% url 'conflict_dashboard' %}"><i class="fas fa-exclamation-triangle me-2"></i>View Conflicts</a></li>
+                    <li><a class="dropdown-item" href="{% url 'generate_schedule' %}"><i class="fas fa-calendar-alt me-2"></i>Generate Schedule</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Bell -->
+    <div class="position-absolute top-0 end-0 mt-3 me-3">
+        <div class="dropdown">
+            <a href="#" class="btn btn-primary position-relative dropdown-toggle" id="notificationDropdown" data-bs-toggle="dropdown">
+                <i class="fas fa-bell"></i>
+                {% if unread_count > 0 %}
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                    {{ unread_count }}
+                </span>
+                {% endif %}
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end notification-dropdown" aria-labelledby="notificationDropdown">
+                <li class="dropdown-header">You have {{ unread_count }} new notification{{ unread_count|pluralize }}</li>
+                {% for notification in recent_notifications|slice:":5" %}
+                <li>
+                    <a class="dropdown-item {% if not notification.read %}unread{% endif %}" href="{% if notification.link %}{{ notification.link }}{% else %}#{% endif %}">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0 me-2">
+                                <div class="notification-icon bg-{{ notification.type|default:'primary' }}">
+                                    <i class="fas fa-{{ notification.icon|default:'info-circle' }}"></i>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-0">{{ notification.title }}</h6>
+                                <small class="text-muted">{{ notification.message|truncatechars:50 }}</small>
+                                <div class="text-end">
+                                    <small class="text-muted">{{ notification.created_at|timesince }} ago</small>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </li>
+                {% empty %}
+                <li><a class="dropdown-item text-center py-3" href="#">No notifications</a></li>
+                {% endfor %}
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item text-center" href="{% url 'notifications' %}">View all notifications</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Stats Cards with Progress Indicators -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card card-hover h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-muted">Total Halls</span>
+                            <h2 class="mt-2 mb-0">{{ total_halls }}</h2>
+                            <div class="d-flex align-items-center mt-2">
+                                <span class="badge bg-success me-2">+2.5%</span>
+                                <span class="text-muted small">vs last month</span>
+                            </div>
+                        </div>
+                        <div class="bg-primary bg-opacity-10 p-3 rounded">
+                            <i class="fas fa-building fs-2 text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-top-0">
+                    <a href="{% url 'halls' %}" class="btn btn-sm btn-link text-decoration-none">
+                        View all halls <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6">
+            <div class="card card-hover h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-muted">Total Lecturers</span>
+                            <h2 class="mt-2 mb-0">{{ total_lecturers }}</h2>
+                            <div class="d-flex align-items-center mt-2">
+                                <span class="badge bg-success me-2">+5.1%</span>
+                                <span class="text-muted small">vs last month</span>
+                            </div>
+                        </div>
+                        <div class="bg-success bg-opacity-10 p-3 rounded">
+                            <i class="fas fa-chalkboard-teacher fs-2 text-success"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-top-0">
+                    <a href="{% url 'lecturers' %}" class="btn btn-sm btn-link text-decoration-none">
+                        View all lecturers <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6">
+            <div class="card card-hover h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-muted">Active Exams</span>
+                            <h2 class="mt-2 mb-0">
+                              
+                  <div class="alert alert-warning">
+    <i class="fas fa-exclamation-triangle me-2"></i>
+    This will randomly assign invigilators to {{ exam_count }} upcoming exams between {{ date_range }}.
+    Any existing assignments will be overwritten.
+</div>
+                              
+                              </h2>
+                            <div class="d-flex align-items-center mt-2">
+                                <span class="badge bg-{% if exam_trend == 'up' %}success{% else %}danger{% endif %} me-2">
+                                    {% if exam_trend == 'up' %}+{% else %}-{% endif %}{{ exam_change }}%
+                                </span>
+                                <span class="text-muted small">vs last week</span>
+                            </div>
+                        </div>
+                        <div class="bg-warning bg-opacity-10 p-3 rounded">
+                            <i class="fas fa-clipboard-list fs-2 text-warning"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-top-0">
+                    <a href="{% url 'exam_list' %}" class="btn btn-sm btn-link text-decoration-none">
+                        View all exams <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6">
+            <div class="card card-hover h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-muted">Active Conflicts</span>
+                            <h2 class="mt-2 mb-0">{{ active_conflicts }}</h2>
+                            <div class="d-flex align-items-center mt-2">
+                                <span class="badge bg-{% if conflict_trend == 'up' %}danger{% else %}success{% endif %} me-2">
+                                    {% if conflict_trend == 'up' %}+{% else %}-{% endif %}{{ conflict_change }}%
+                                </span>
+                                <span class="text-muted small">vs last week</span>
+                            </div>
+                        </div>
+                        <div class="bg-danger bg-opacity-10 p-3 rounded">
+                            <i class="fas fa-exclamation-triangle fs-2 text-danger"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-top-0">
+                    <a href="{% url 'conflict_dashboard' %}" class="btn btn-sm btn-link text-decoration-none">
+                        Resolve conflicts <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label for="range" class="form-label">Date Range</label>
+                    <select class="form-select" id="range" name="range">
+                        <option value="today" {% if date_range == 'today' %}selected{% endif %}>Today</option>
+                        <option value="week" {% if date_range == 'week' %}selected{% endif %}>This Week</option>
+                        <option value="month" {% if date_range == 'month' %}selected{% endif %}>This Month</option>
+                        <option value="all" {% if date_range == 'all' %}selected{% endif %}>All Upcoming</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="exam_type" class="form-label">Exam Type</label>
+                    <select class="form-select" id="exam_type" name="exam_type">
+                        <option value="all" {% if exam_type_filter == 'all' %}selected{% endif %}>All Types</option>
+                        <option value="PBE" {% if exam_type_filter == 'PBE' %}selected{% endif %}>Paper-Based</option>
+                        <option value="CBE" {% if exam_type_filter == 'CBE' %}selected{% endif %}>Computer-Based</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="hall" class="form-label">Hall</label>
+                    <select class="form-select" id="hall" name="hall">
+                        <option value="all" {% if hall_filter == 'all' %}selected{% endif %}>All Halls</option>
+                        {% for hall in all_halls %}
+                        <option value="{{ hall.hall_name }}" {% if hall_filter == hall.hall_name %}selected{% endif %}>{{ hall.hall_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="period" class="form-label">Period</label>
+                    <select class="form-select" id="period" name="period">
+                        <option value="all" {% if period_filter == 'all' %}selected{% endif %}>All Periods</option>
+                        <option value="AM" {% if period_filter == 'AM' %}selected{% endif %}>Morning</option>
+                        <option value="PM" {% if period_filter == 'PM' %}selected{% endif %}>Afternoon</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- Main Content Row -->
+    <div class="row g-4">
+        <!-- Left Column -->
+        <div class="col-lg-8">
+            <!-- Exam Schedule Overview -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-calendar-alt me-2"></i>Exam Schedule Overview
+                    </h5>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="scheduleFilter" data-bs-toggle="dropdown">
+                            This Week
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#">Today</a></li>
+                            <li><a class="dropdown-item" href="#">This Week</a></li>
+                            <li><a class="dropdown-item" href="#">This Month</a></li>
+                            <li><a class="dropdown-item" href="#">Custom Range</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+
+                        <table class="table table-hover table-borderless align-middle mb-0" id="examScheduleTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Exam</th>
+                                    <th>Period</th>
+                                    <th>Hall</th>
+                                    <th>Invigilators</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for exam in upcoming_exams %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex flex-column">
+                                            <span class="fw-bold">{{ exam.exam_date|date:"D, M j" }}</span>
+                                            <small class="text-muted">{{ exam.exam_date|date:"Y" }}</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'exam_detail' exam.pk %}" class="text-decoration-none">
+                                            {{ exam.exam_name|truncatechars:20 }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{% if exam.exam_period == 'AM' %}info{% else %}primary{% endif %}">
+                                            {{ exam.get_exam_period_display }}
+                                        </span>
+                                    </td>
+                                    <td>{{ exam.exam_hall.hall_name }}</td>
+                                    <td>
+                                        <div class="avatar-group">
+                                            {% if exam.invigilator1 %}
+                                            <div class="avatar avatar-xs" data-bs-toggle="tooltip" title="{{ exam.invigilator1.lecturer_name }}">
+                                                <span class="avatar-initial bg-primary rounded-circle">
+                                                    {{ exam.invigilator1.lecturer_name|first }}
+                                                </span>
+                                            </div>
+                                            {% endif %}
+                                            {% if exam.invigilator2 %}
+                                            <div class="avatar avatar-xs" data-bs-toggle="tooltip" title="{{ exam.invigilator2.lecturer_name }}">
+                                                <span class="avatar-initial bg-success rounded-circle">
+                                                    {{ exam.invigilator2.lecturer_name|first }}
+                                                </span>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if exam.exam_date == today %}
+                                        <span class="badge bg-warning">Today</span>
+                                        {% elif exam.exam_date < today %}
+                                        <span class="badge bg-secondary">Completed</span>
+                                        {% else %}
+                                        <span class="badge bg-success">Upcoming</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-icon" type="button" data-bs-toggle="dropdown">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end">
+                                                <li><a class="dropdown-item" href="{% url 'exam_detail' exam.pk %}"><i class="fas fa-eye me-2"></i>View</a></li>
+                                                <li><a class="dropdown-item" href="{% url 'edit_exam' exam.pk %}"><i class="fas fa-edit me-2"></i>Edit</a></li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li><a class="dropdown-item text-danger" href="{% url 'delete_exam' exam.pk %}"><i class="fas fa-trash me-2"></i>Delete</a></li>
+                                            </ul>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center py-4">
+                                        <div class="d-flex flex-column align-items-center">
+                                            <i class="fas fa-calendar-times fs-4 text-muted mb-2"></i>
+                                            <span class="text-muted">No exams scheduled for this period</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        
+                        
+                        
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a href="{% url 'exam_list' %}" class="btn btn-sm btn-outline-primary">
+                        View Full Schedule <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Charts Row -->
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-pie me-2"></i>Exam Type Distribution
+                </h5>
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-icon" type="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-ellipsis-v"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#">Last 7 Days</a></li>
+                        <li><a class="dropdown-item" href="#">Last 30 Days</a></li>
+                        <li><a class="dropdown-item" href="#">This Semester</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="card-body" style="position: relative; height: 250px;">
+                <canvas id="examTypeChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-line me-2"></i>Exam Trends
+                </h5>
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-icon" type="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-ellipsis-v"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#">Weekly</a></li>
+                        <li><a class="dropdown-item" href="#">Monthly</a></li>
+                        <li><a class="dropdown-item" href="#">Semester</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="card-body" style="position: relative; height: 250px;">
+                <canvas id="examTrendChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+        </div>
+
+
+
+
+<div class="container-fluid px-4">
+    <!-- Dashboard Header with Quick Actions -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div class="d-flex gap-2">
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#generateScheduleModal">
+                <i class="fas fa-calendar-plus me-1"></i> Generate Schedule
+            </button>
+            <div class="dropdown">
+                <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-download me-1"></i> Export
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="{% url 'export_exams' %}?format=pdf">PDF Report</a></li>
+                    <li><a class="dropdown-item" href="{% url 'export_exams' %}?format=csv">CSV Data</a></li>
+                    <li><a class="dropdown-item" href="{% url 'export_exams' %}?format=excel">Excel Spreadsheet</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters Row -->
+
+
+    <!-- Stats Cards Row -->
+
+
+    <!-- Main Content Row -->
+    <div class="row g-4">
+        <!-- Left Column -->
+        <div class="col-lg-8">
+            <!-- Exam Schedule Overview -->
+
+
+            <!-- Charts Row -->
+
+        <!-- Right Column -->
+        <div class="col-lg-4">
+            <!-- Conflict Summary -->
+            <div class="card mb-4">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Conflict Summary</h5>
+                </div>
+<div class="card-body">
+    <div class="row g-3">
+        {% for conflict in conflicts_by_type %}
+        <div class="col-6">
+            <div class="border rounded p-3">
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted">{{ conflict.conflict_type }}</span>
+                    <span class="fw-bold">{{ conflict.count }}</span>
+                </div>
+                <div class="progress mt-2" style="height: 6px;">
+                    <div class="progress-bar bg-success" 
+                         style="width: {% widthratio conflict.resolved conflict.count 100 %}%"></div>
+                    <div class="progress-bar bg-danger" 
+                         style="width: {% widthratio conflict.unresolved conflict.count 100 %}%"></div>
+                </div>
+                <div class="d-flex justify-content-between mt-1 small">
+                    <span class="text-success">{{ conflict.resolved }} resolved</span>
+                    <span class="text-danger">{{ conflict.unresolved }} open</span>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info">No conflicts found</div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+               
+               
+                <div class="card-footer bg-transparent">
+                    <a href="{% url 'conflict_dashboard' %}" class="btn btn-outline-danger w-100">
+                        Manage Conflicts <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Hall Utilization -->
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-building me-2"></i>Hall Utilization</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        {% for hall in hall_utilization %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="fw-bold">{{ hall.room_nos|truncatechars:20 }}</span>
+                                <div class="progress mt-1" style="height: 6px;">
+                                    <div class="progress-bar bg-info" style="width: {{ hall.exam_count|percentage:10 }}%"></div>
+                                </div>
+                            </div>
+                            <span class="badge bg-info rounded-pill">{{ hall.exam_count }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a href="{% url 'halls' %}" class="btn btn-outline-info w-100">
+                        View All Halls <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Generate Schedule Modal -->
+<div class="modal fade" id="generateScheduleModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Generate Exam Schedule</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="scheduleForm" method="post" action="{% url 'generate_schedule' %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Date Range</label>
+                        <div class="input-group">
+                            <input type="date" class="form-control" name="start_date" value="{{ today|date:'Y-m-d' }}">
+                            <span class="input-group-text">to</span>
+                            <input type="date" class="form-control" name="end_date" value="{{ today|date:'Y-m-d' }}">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Options</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="clear_existing" id="clearExisting" checked>
+                            <label class="form-check-label" for="clearExisting">Clear existing assignments</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="avoid_conflicts" id="avoidConflicts" checked>
+                            <label class="form-check-label" for="avoidConflicts">Avoid scheduling conflicts</label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" form="scheduleForm" class="btn btn-primary">Generate Schedule</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+        <!-- Right Column -->
+        <div class="col-lg-4">
+            <!-- Recent Activity -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list-alt me-2"></i>Recent Activity
+                    </h5>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-icon" type="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#">Mark all as read</a></li>
+                            <li><a class="dropdown-item" href="#">Filter by type</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'notifications' %}">View all</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for activity in recent_activity %}
+                        <div class="list-group-item list-group-item-action border-0 py-3">
+                            <div class="d-flex align-items-start">
+                                <div class="flex-shrink-0 me-3">
+                                    <div class="avatar avatar-sm">
+                                        <span class="avatar-initial rounded-circle bg-{{ activity.color|default:'primary' }}">
+                                            <i class="fas fa-{{ activity.icon|default:'bell' }}"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1 overflow-hidden">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <h6 class="mb-0 text-truncate">{{ activity.title }}</h6>
+                                        <small class="text-muted">{{ activity.time|timesince }} ago</small>
+                                    </div>
+                                    <p class="mb-0 text-muted text-truncate">{{ activity.description }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="list-group-item border-0 py-4 text-center">
+                            <i class="fas fa-inbox fs-4 text-muted mb-2"></i>
+                            <p class="text-muted mb-0">No recent activity</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Conflict Alerts -->
+            <div class="card mb-4 border-warning">
+                <div class="card-header bg-warning bg-opacity-10 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 text-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Conflict Alerts
+                    </h5>
+                    <span class="badge bg-warning">{{ potential_conflicts|length }}</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for conflict in potential_conflicts %}
+                        <div class="list-group-item list-group-item-action border-0 py-3">
+                            <div class="d-flex align-items-start">
+                                <div class="flex-shrink-0 me-3">
+                                    <div class="avatar avatar-sm">
+                                        <span class="avatar-initial rounded-circle bg-danger">
+                                            <i class="fas fa-user-times"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1 overflow-hidden">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <h6 class="mb-0 text-truncate">{{ conflict.lecturer.lecturer_name }}</h6>
+                                        <span class="badge bg-danger">{{ conflict.count }} conflicts</span>
+                                    </div>
+                                    <p class="mb-0 text-muted text-truncate">
+                                        Multiple assignments on {{ conflict.date|date:"M j" }} ({{ conflict.period }})
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="list-group-item border-0 py-4 text-center">
+                            <i class="fas fa-check-circle fs-4 text-success mb-2"></i>
+                            <p class="text-muted mb-0">No conflicts detected</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a href="{% url 'conflict_dashboard' %}" class="btn btn-sm btn-outline-warning">
+                        Resolve Conflicts <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Resource Utilization -->
+<div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center bg-primary text-white">
+        <h5 class="mb-0">
+            <i class="fas fa-chart-pie me-2"></i>Resource Utilization Dashboard
+        </h5>
+        <span class="badge bg-light text-dark">
+            <i class="fas fa-circle text-success me-1"></i>Live Updates
+        </span>
+    </div>
+    <div class="card-body">
+        <!-- Hall Utilization -->
+        <div class="mb-4">
+            <div class="d-flex justify-content-between mb-2">
+                <span class="fw-semibold">
+                    <i class="fas fa-building me-2"></i>Hall Capacity Utilization
+                </span>
+                <span class="badge bg-{% if hall_utilization < 70 %}success{% elif hall_utilization < 90 %}warning{% else %}danger{% endif %}">
+                    {{ hall_utilization }}%
+                </span>
+            </div>
+            <div class="progress" style="height: 10px;">
+                <div class="progress-bar bg-{% if hall_utilization < 70 %}success{% elif hall_utilization < 90 %}warning{% else %}danger{% endif %} 
+                    progress-bar-striped {% if hall_utilization > 90 %}progress-bar-animated{% endif %}" 
+                    role="progressbar" style="width: {{ hall_utilization }}%" 
+                    aria-valuenow="{{ hall_utilization }}" aria-valuemin="0" aria-valuemax="100"
+                    data-bs-toggle="tooltip" title="{{ hall_utilization }}% of halls are booked">
+                </div>
+            </div>
+            <small class="text-muted">{{ used_halls }}/{{ total_halls }} halls in use</small>
+        </div>
+
+        <!-- Lecturer Utilization -->
+        <div class="mb-4">
+            <div class="d-flex justify-content-between mb-2">
+                <span class="fw-semibold">
+                    <i class="fas fa-chalkboard-teacher me-2"></i>Lecturer Assignment
+                </span>
+                <span class="badge bg-{% if lecturer_utilization < 60 %}success{% elif lecturer_utilization < 80 %}warning{% else %}danger{% endif %}">
+                    {{ lecturer_utilization }}%
+                </span>
+            </div>
+            <div class="progress" style="height: 10px;">
+                <div class="progress-bar bg-{% if lecturer_utilization < 60 %}success{% elif lecturer_utilization < 80 %}warning{% else %}danger{% endif %} 
+                    progress-bar-striped {% if lecturer_utilization > 80 %}progress-bar-animated{% endif %}" 
+                    role="progressbar" style="width: {{ lecturer_utilization }}%" 
+                    aria-valuenow="{{ lecturer_utilization }}" aria-valuemin="0" aria-valuemax="100"
+                    data-bs-toggle="tooltip" title="{{ lecturer_utilization }}% of lecturers are assigned">
+                </div>
+            </div>
+            <small class="text-muted">{{ assigned_lecturers }}/{{ total_lecturers }} lecturers assigned</small>
+        </div>
+
+        <!-- Conflict Resolution -->
+        <div>
+            <div class="d-flex justify-content-between mb-2">
+                <span class="fw-semibold">
+                    <i class="fas fa-handshake me-2"></i>Conflict Resolution
+                </span>
+                <span class="badge bg-{% if conflict_resolution_rate > 80 %}success{% elif conflict_resolution_rate > 50 %}warning{% else %}danger{% endif %}">
+                    {{ conflict_resolution_rate }}%
+                </span>
+            </div>
+            <div class="progress" style="height: 10px;">
+                <div class="progress-bar bg-{% if conflict_resolution_rate > 80 %}success{% elif conflict_resolution_rate > 50 %}warning{% else %}danger{% endif %} 
+                    progress-bar-striped {% if conflict_resolution_rate < 50 %}progress-bar-animated{% endif %}" 
+                    role="progressbar" style="width: {{ conflict_resolution_rate }}%" 
+                    aria-valuenow="{{ conflict_resolution_rate }}" aria-valuemin="0" aria-valuemax="100"
+                    data-bs-toggle="tooltip" title="{{ resolved_conflicts }}/{{ total_conflicts }} conflicts resolved">
+                </div>
+            </div>
+            <small class="text-muted">{{ resolved_conflicts }}/{{ total_conflicts }} conflicts resolved</small>
+        </div>
+    </div>
+    <div class="card-footer bg-light">
+        <small class="text-muted">Last updated: {{ last_updated|date:"M d, Y H:i" }}</small>
+    </div>
+</div>
+
+<script>
+// Initialize tooltips
+document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+</script>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- DataTables -->
+<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+
+<script>
+// Initialize DataTable for exam schedule
+$(document).ready(function() {
+    $('#examScheduleTable').DataTable({
+        responsive: true,
+        order: [[0, 'asc']],
+        pageLength: 5,
+        lengthMenu: [5, 10, 25],
+        language: {
+            search: "_INPUT_",
+            searchPlaceholder: "Search exams...",
+        },
+        dom: '<"top"f>rt<"bottom"lip><"clear">',
+    });
+    
+    // Initialize tooltips
+    $('[data-bs-toggle="tooltip"]').tooltip();
+});
+
+// Exam Type Distribution Chart
+const examTypeCtx = document.getElementById('examTypeChart').getContext('2d');
+const examTypeChart = new Chart(examTypeCtx, {
+    type: 'doughnut',
+    data: {
+        labels: ['Paper-Based Exams', 'Computer-Based Exams'],
+        datasets: [{
+            data: [{{ pbe_lecturers }}, {{ cbe_lecturers }}],
+            backgroundColor: [
+                'rgba(54, 162, 235, 0.8)',
+                'rgba(255, 99, 132, 0.8)'
+            ],
+            borderColor: [
+                'rgba(54, 162, 235, 1)',
+                'rgba(255, 99, 132, 1)'
+            ],
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: {
+                    boxWidth: 12,
+                    padding: 20
+                }
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        let label = context.label || '';
+                        let value = context.raw || 0;
+                        let total = context.dataset.data.reduce((a, b) => a + b, 0);
+                        let percentage = Math.round((value / total) * 100);
+                        return `${label}: ${value} (${percentage}%)`;
+                    }
+                }
+            }
+        },
+        cutout: '70%'
+    }
+});
+
+// Exam Trend Chart
+const examTrendCtx = document.getElementById('examTrendChart').getContext('2d');
+const examTrendChart = new Chart(examTrendCtx, {
+    type: 'line',
+    data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+        datasets: [
+            {
+                label: 'PBE Exams',
+                data: [12, 19, 15, 22, 18, 25],
+                borderColor: 'rgba(54, 162, 235, 1)',
+                backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                tension: 0.3,
+                fill: true
+            },
+            {
+                label: 'CBE Exams',
+                data: [8, 12, 10, 15, 20, 30],
+                borderColor: 'rgba(255, 99, 132, 1)',
+                backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                tension: 0.3,
+                fill: true
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: {
+                    boxWidth: 12,
+                    padding: 20
+                }
+            },
+            tooltip: {
+                mode: 'index',
+                intersect: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: {
+                    drawBorder: false
+                }
+            },
+            x: {
+                grid: {
+                    display: false
+                }
+            }
+        }
+    }
+});
+
+// Notification dropdown behavior
+document.getElementById('notificationDropdown').addEventListener('click', function(e) {
+    e.preventDefault();
+    // Mark notifications as read via AJAX could be added here
+});
+</script>
+
+<style>
+.card-hover:hover {
+    transform: translateY(-5px);
+    transition: transform 0.3s ease;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 600;
+}
+
+.avatar-initial {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: uppercase;
+}
+
+.avatar-xs {
+    width: 24px;
+    height: 24px;
+    font-size: 0.75rem;
+}
+
+.notification-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.notification-dropdown {
+    width: 320px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.list-group-item.unread {
+    background-color: rgba(13, 110, 253, 0.05);
+}
+
+.progress {
+    border-radius: 10px;
+}
+
+.progress-bar {
+    border-radius: 10px;
+}
+</style>
+{% endblock %}
+
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{% static 'js/dashboard.js' %}"></script>
+{% endblock %}

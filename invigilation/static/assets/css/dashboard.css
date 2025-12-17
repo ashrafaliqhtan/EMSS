@@ -1,0 +1,216 @@
+/* Dashboard Main Layout */
+.dashboard-container {
+    padding: 1.5rem;
+    background-color: #f8f9fa;
+}
+
+/* Card Styling */
+.dashboard-card {
+    border-radius: 0.5rem;
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    transition: all 0.3s ease;
+    margin-bottom: 1.5rem;
+}
+
+.dashboard-card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+}
+
+.card-header {
+    background-color: #fff;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 1rem 1.25rem;
+    border-radius: 0.5rem 0.5rem 0 0 !important;
+}
+
+/* Table Styling */
+.dashboard-table {
+    width: 100%;
+    margin-bottom: 0;
+}
+
+.dashboard-table th {
+    background-color: #f8f9fa;
+    border-top: none;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+    color: #6c757d;
+    padding: 0.75rem 1rem;
+}
+
+.dashboard-table td {
+    padding: 1rem;
+    vertical-align: middle;
+    border-top: 1px solid #f0f0f0;
+}
+
+.dashboard-table tr:hover td {
+    background-color: #f8fafc;
+}
+
+/* Badge Styling */
+.status-badge {
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 0.35em 0.65em;
+    border-radius: 0.25rem;
+}
+
+/* Avatar Group */
+.avatar-group {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.avatar-xs {
+    width: 24px;
+    height: 24px;
+    font-size: 0.75rem;
+}
+
+.avatar-primary {
+    background-color: #4e73df;
+}
+
+.avatar-success {
+    background-color: #1cc88a;
+}
+
+.avatar-warning {
+    background-color: #f6c23e;
+}
+
+/* Progress Bars */
+.progress-thin {
+    height: 6px;
+    border-radius: 3px;
+}
+
+.progress-thin .progress-bar {
+    border-radius: 3px;
+}
+
+/* Filter Section */
+.filter-card {
+    background-color: #fff;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    margin-bottom: 1.5rem;
+}
+
+.filter-header {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.filter-body {
+    padding: 1.25rem;
+}
+
+/* Chart Containers */
+.chart-container {
+    position: relative;
+    height: 250px;
+    min-height: 250px;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .dashboard-table td, 
+    .dashboard-table th {
+        padding: 0.75rem 0.5rem;
+    }
+    
+    .avatar-group {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+}
+
+/* Conflict Summary Cards */
+.conflict-card {
+    border-left: 4px solid;
+    transition: all 0.3s ease;
+}
+
+.conflict-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+}
+
+.conflict-card-lecturer {
+    border-left-color: #4e73df;
+}
+
+.conflict-card-hall {
+    border-left-color: #1cc88a;
+}
+
+.conflict-card-supervisor {
+    border-left-color: #f6c23e;
+}
+
+/* Custom Scrollbar for Tables */
+.table-responsive::-webkit-scrollbar {
+    height: 6px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+    background: #d1d3e2;
+    border-radius: 3px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+    background: #b7b9cc;
+}
+
+/* Modal Customization */
+.schedule-modal .modal-content {
+    border-radius: 0.5rem;
+    border: none;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.schedule-modal .modal-header {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    background-color: #f8f9fa;
+    border-radius: 0.5rem 0.5rem 0 0;
+}
+
+/* Utility Classes */
+.text-small {
+    font-size: 0.875rem;
+}
+
+.text-xsmall {
+    font-size: 0.75rem;
+}
+
+.hover-scale {
+    transition: transform 0.2s ease;
+}
+
+.hover-scale:hover {
+    transform: scale(1.05);
+}

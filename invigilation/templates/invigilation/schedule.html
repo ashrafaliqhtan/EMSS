@@ -1,0 +1,166 @@
+{% extends 'invigilation/based.html' %}
+
+{% block title %}Dashboard - Invigilation System{% endblock %}
+
+{% block content %}
+<main id="main" class="main pt-0 mt-4">
+  <div class="pagetitle">
+    <h1>Allocation Schedule</h1>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Home</a></li>
+        <li class="breadcrumb-item">Allocation</li>
+        <li class="breadcrumb-item active">Lecturers</li>
+      </ol>
+    </nav>
+
+    <form action="{% url 'schedule' %}" method="POST" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="input-group col-md-3">
+        <label for="course" class="input-group-text">Upload Course Schedule Data</label>
+        <input type="file" class="form-control" name="courses" id="course" aria-describedby="inputGroupFileAddon04" accept=".csv" />
+        <button class="btn btn-outline-success" type="submit" id="inputGroupFileAddon04">Generate</button>
+      </div>
+    </form>
+  </div>
+  <!-- End Page Title -->
+
+  <!-- INVIGILATORS TABLE SECTION -->
+  <section class="section">
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Invigilator Allocations</h5>
+            <!-- Table with stripped rows -->
+            <table class="table datatable">
+              <thead>
+                <tr>
+                  <th scope="col">#</th>
+                  <th scope="col">Lecturer Code</th>
+                  <th scope="col">Exam Hall</th>
+                  <th scope="col">Courses</th>
+                  <th scope="col">Exam Type</th>
+                  <th scope="col" style="width: 70px">Exam Date</th>
+                  <th scope="col">Exam Period</th>
+                  <th scope="col">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for data in invigilators %}
+                <tr>
+                  <th scope="row">{{ data.id }}</th>
+                  <td>{{ data.lecture_code }}</td>
+                  <td>{{ data.exam_hall }}</td>
+                  <td>{{ data.courses }}</td>
+                  <td>{{ data.exam_type }}</td>
+                  <td>{{ data.exam_date }}</td>
+                  <td>{{ data.exam_period }}</td>
+                  <td>
+                    <a href="{% url 'edit_invigilator' data.id %}" class="btn btn-sm btn-warning">Edit</a>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            <div class="mt-3">
+              <a href="{% url 'create_invigilator' %}" class="btn btn-primary">Create New Invigilator Allocation</a>
+            </div>
+            <!-- End Table with stripped rows -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SUPERVISOR TABLE SECTION -->
+  <section class="section">
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Supervisor Allocations</h5>
+            <!-- Table with stripped rows -->
+            <table class="table datatable">
+              <thead>
+                <tr>
+                  <th scope="col">#</th>
+                  <th scope="col">Lecturer Code</th>
+                  <th scope="col">Block</th>
+                  <th scope="col">Exam Type</th>
+                  <th scope="col">Exam Date</th>
+                  <th scope="col">Exam Period</th>
+                  <th scope="col">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for data in supervisors %}
+                <tr>
+                  <th scope="row">{{ data.id }}</th>
+                  <td>{{ data.lecture_code }}</td>
+                  <td>{{ data.exam_block }}</td>
+                  <td>{{ data.exam_type }}</td>
+                  <td>{{ data.exam_date }}</td>
+                  <td>{{ data.exam_period }}</td>
+                  <td>
+                    <a href="{% url 'edit_supervisor' data.id %}" class="btn btn-sm btn-warning">Edit</a>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            <div class="mt-3">
+              <a href="{% url 'create_supervisor' %}" class="btn btn-primary">Create New Supervisor Allocation</a>
+            </div>
+            <!-- End Table with stripped rows -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HALL MANAGEMENT SECTION -->
+  <section class="section">
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Hall Management</h5>
+            <div class="d-flex flex-wrap">
+              <a href="{% url 'create_hall' %}" class="btn btn-primary m-2">Create New Hall</a>
+              <a href="{% url 'halls' %}" class="btn btn-secondary m-2">Manage Halls</a>
+            </div>
+
+            <!-- Table for listing halls -->
+            <table class="table datatable">
+              <thead>
+                <tr>
+                  <th scope="col">#</th>
+                  <th scope="col">Block</th>
+                  <th scope="col">Hall Name</th>
+                  <th scope="col">Hall Capacity</th>
+                  <th scope="col">Hall Type</th>
+                </tr>
+              </thead>
+<tbody>
+    {% for data in halls %}
+    <tr>
+        <th scope="row">{{ data.id }}</th>
+        <td>{{ data.block }}</td>  <!-- Fixed name -->
+        <td>{{ data.name }}</td>  <!-- Fixed name -->
+        <td>{{ data.capacity }}</td>
+        <td>{{ data.type }}</td>  <!-- Fixed name -->
+    </tr>
+    {% endfor %}
+</tbody>
+
+            </table>
+            <!-- Optionally, list individual halls with edit actions on the 'halls' page -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+</main>
+{% endblock %}

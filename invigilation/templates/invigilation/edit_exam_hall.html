@@ -1,0 +1,426 @@
+{% extends 'invigilation/based.html' %}
+{% load widget_tweaks %}
+{% load static %}
+
+{% block title %}Edit Exam Hall Assignment{% endblock %}
+
+{% block extra_css %}
+<style>
+    .supervisor-card {
+        transition: all 0.3s ease;
+        border-left: 4px solid transparent;
+    }
+    .supervisor-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+    .supervisor-card.conflict {
+        border-left-color: #dc3545;
+        animation: pulseWarning 1.5s infinite;
+    }
+    .supervisor-avatar {
+        width: 40px;
+        height: 40px;
+        font-size: 1.2rem;
+    }
+    @keyframes pulseWarning {
+        0% { border-left-color: #dc3545; }
+        50% { border-left-color: rgba(220, 53, 69, 0.5); }
+        100% { border-left-color: #dc3545; }
+    }
+    .date-highlight {
+        background-color: #fff3cd;
+    }
+    .assignment-history {
+        max-height: 200px;
+        overflow-y: auto;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">
+                        <i class="fas fa-edit me-2"></i>Edit Exam Hall Assignment
+                    </h4>
+                    <div>
+                        <a href="{% url 'exam_hall_panel' %}" class="btn btn-light btn-sm">
+                            <i class="fas fa-arrow-left me-1"></i> Back to Panel
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <form method="post" class="needs-validation" novalidate id="examHallForm">
+                        {% csrf_token %}
+                        
+                        <!-- Error Alert -->
+                        {% if form.errors %}
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <strong><i class="fas fa-exclamation-triangle me-2"></i>Form Errors:</strong>
+                            Please correct the errors below.
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="row g-3">
+                            <!-- Basic Information -->
+                            <div class="col-md-4">
+                                <div class="card mb-4">
+                                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                        <h5 class="mb-0"><i class="fas fa-book me-2"></i>Course Information</h5>
+                                        <span class="badge bg-primary">Required</span>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label for="id_level" class="form-label">Level</label>
+                                            {% render_field form.level class="form-control" %}
+                                            <div class="invalid-feedback">Please provide a level.</div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="id_course_code" class="form-label">Course Code</label>
+                                            {% render_field form.course_code class="form-control" %}
+                                            <div class="invalid-feedback">Please provide a course code.</div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="id_course_name" class="form-label">Course Name</label>
+                                            {% render_field form.course_name class="form-control" %}
+                                            <div class="invalid-feedback">Please provide a course name.</div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="id_section" class="form-label">Section (if applicable)</label>
+                                            {% render_field form.section class="form-control" %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Room and Student Information -->
+                            <div class="col-md-4">
+                                <div class="card mb-4">
+                                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                        <h5 class="mb-0"><i class="fas fa-door-open me-2"></i>Room & Student Details</h5>
+                                        <span class="badge bg-primary">Required</span>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label for="id_total_students" class="form-label">Total Students</label>
+                                            {% render_field form.total_students class="form-control" min="1" %}
+                                            <div class="invalid-feedback">Please enter a valid number of students.</div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="id_students_per_room" class="form-label">Students per Room</label>
+                                            {% render_field form.students_per_room class="form-control" min="1" %}
+                                            <div class="invalid-feedback">Please enter a valid number.</div>
+                                            <small class="text-muted">Calculated rooms: <span id="roomCount">{{ object.room_count }}</span></small>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="id_from_to" class="form-label">From-To Range</label>
+                                            {% render_field form.from_to class="form-control" %}
+                                            <div class="invalid-feedback">Please provide a valid range.</div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="id_room_nos" class="form-label">Room Numbers</label>
+                                            {% render_field form.room_nos class="form-control" %}
+                                            <small class="text-muted">Separate multiple rooms with commas</small>
+                                            <div class="invalid-feedback">Please provide at least one room number.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Supervisor and Exam Information -->
+                            <div class="col-md-4">
+                                <div class="card mb-4">
+                                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                        <h5 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>Exam & Supervisor Details</h5>
+                                        <span class="badge bg-primary">Required</span>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label for="id_exam_date" class="form-label">Exam Date</label>
+                                            {% render_field form.exam_date class="form-control date-highlight" type="date" %}
+                                            <div class="invalid-feedback">Please select an exam date.</div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="id_exam_period" class="form-label">Exam Period</label>
+                                            {% render_field form.exam_period class="form-select" %}
+                                            <div class="invalid-feedback">Please select an exam period.</div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label class="form-label">First Supervisor</label>
+                                            {% render_field form.first_supervisor class="form-select" %}
+                                            <div class="invalid-feedback">Please select a supervisor.</div>
+                                            <div id="firstSupervisorInfo" class="mt-2">
+                                                {% if form.first_supervisor.value %}
+                                                <div class="card supervisor-card">
+                                                    <div class="card-body p-3">
+                                                        <div class="d-flex align-items-center">
+                                                            <div class="avatar avatar-sm supervisor-avatar bg-primary rounded-circle me-3 d-flex align-items-center justify-content-center">
+                                                                <span class="text-white">{{ form.first_supervisor.selected_label|slice:"1"|upper }}</span>
+                                                            </div>
+                                                            <div>
+                                                                <h6 class="mb-0">{{ form.first_supervisor.selected_label }}</h6>
+                                                                <small class="text-muted">{{ form.first_supervisor.selected_instance.academic_degree }}, {{ form.first_supervisor.selected_instance.department }}</small>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label class="form-label">Second Supervisor (Optional)</label>
+                                            {% render_field form.second_supervisor class="form-select" %}
+                                            <div id="secondSupervisorInfo" class="mt-2">
+                                                {% if form.second_supervisor.value %}
+                                                <div class="card supervisor-card">
+                                                    <div class="card-body p-3">
+                                                        <div class="d-flex align-items-center">
+                                                            <div class="avatar avatar-sm supervisor-avatar bg-secondary rounded-circle me-3 d-flex align-items-center justify-content-center">
+                                                                <span class="text-white">{{ form.second_supervisor.selected_label|slice:"1"|upper }}</span>
+                                                            </div>
+                                                            <div>
+                                                                <h6 class="mb-0">{{ form.second_supervisor.selected_label }}</h6>
+                                                                <small class="text-muted">{{ form.second_supervisor.selected_instance.academic_degree }}, {{ form.second_supervisor.selected_instance.department }}</small>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                            <div id="supervisorConflictAlert" class="alert alert-danger mt-2 d-none">
+                                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                                <span id="conflictMessage"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Edit History -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0"><i class="fas fa-history me-2"></i>Edit History</h5>
+                            </div>
+                            <div class="card-body assignment-history">
+                                <ul class="list-group list-group-flush">
+                                    {% for log in object.history.all|slice:":5" %}
+                                    <li class="list-group-item">
+                                        <div class="d-flex justify-content-between">
+                                            <span>
+                                                <strong>{{ log.history_user.get_full_name|default:log.history_user.username }}</strong>
+                                                modified this assignment
+                                            </span>
+                                            <small class="text-muted">{{ log.history_date|date:"M d, Y H:i" }}</small>
+                                        </div>
+                                        {% if log.history_change_reason %}
+                                        <div class="text-muted small mt-1">
+                                            <i class="fas fa-comment me-1"></i> {{ log.history_change_reason }}
+                                        </div>
+                                        {% endif %}
+                                    </li>
+                                    {% empty %}
+                                    <li class="list-group-item text-muted">No edit history available</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <!-- Supervisor Conflict Warning Card -->
+                        <div class="row mb-4 d-none" id="supervisorConflictCard">
+                            <div class="col-12">
+                                <div class="card border-danger">
+                                    <div class="card-header bg-danger text-white">
+                                        <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Supervisor Conflict Detected</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row" id="conflictDetails"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mt-4">
+                            <button type="submit" class="btn btn-success px-4" id="submitBtn">
+                                <i class="fas fa-save me-2"></i>Update Assignment
+                            </button>
+                            <a href="{% url 'exam_hall_panel' %}" class="btn btn-outline-secondary px-4">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Form validation
+    const form = document.getElementById('examHallForm');
+    form.addEventListener('submit', function(event) {
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+    }, false);
+
+    // Calculate room count
+    function calculateRooms() {
+        const totalStudents = parseInt(document.getElementById('id_total_students').value) || 0;
+        const studentsPerRoom = parseInt(document.getElementById('id_students_per_room').value) || 1;
+        const roomCount = Math.ceil(totalStudents / studentsPerRoom);
+        document.getElementById('roomCount').textContent = roomCount;
+    }
+
+    document.getElementById('id_total_students').addEventListener('input', calculateRooms);
+    document.getElementById('id_students_per_room').addEventListener('input', calculateRooms);
+    calculateRooms(); // Initial calculation
+
+    // Supervisor conflict detection
+    const firstSupervisor = document.getElementById('id_first_supervisor');
+    const secondSupervisor = document.getElementById('id_second_supervisor');
+    const examDate = document.getElementById('id_exam_date');
+    const examPeriod = document.getElementById('id_exam_period');
+    const conflictAlert = document.getElementById('supervisorConflictAlert');
+    const conflictCard = document.getElementById('supervisorConflictCard');
+    const conflictMessage = document.getElementById('conflictMessage');
+    const conflictDetails = document.getElementById('conflictDetails');
+    const submitBtn = document.getElementById('submitBtn');
+
+    // Fetch supervisor data (this would come from your backend in a real implementation)
+    const supervisors = {
+        {% for sup in form.first_supervisor.field.queryset %}
+        {{ sup.id }}: {
+            name: "{{ sup.name }}",
+            department: "{{ sup.department }}",
+            degree: "{{ sup.academic_degree }}",
+            avatar: "{{ sup.name|slice:'1'|upper }}"
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    };
+
+    function updateSupervisorInfo(selectElement, infoElement) {
+        const selectedId = selectElement.value;
+        if (selectedId && supervisors[selectedId]) {
+            const sup = supervisors[selectedId];
+            infoElement.innerHTML = `
+                <div class="card supervisor-card">
+                    <div class="card-body p-3">
+                        <div class="d-flex align-items-center">
+                            <div class="avatar avatar-sm supervisor-avatar bg-primary rounded-circle me-3 d-flex align-items-center justify-content-center">
+                                <span class="text-white">${sup.avatar}</span>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">${sup.name}</h6>
+                                <small class="text-muted">${sup.degree}, ${sup.department}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else {
+            infoElement.innerHTML = '';
+        }
+    }
+
+    function checkSupervisorConflict() {
+        // Reset conflict state
+        conflictAlert.classList.add('d-none');
+        conflictCard.classList.add('d-none');
+        submitBtn.disabled = false;
+        
+        // Check if same supervisor selected
+        if (firstSupervisor.value && secondSupervisor.value && firstSupervisor.value === secondSupervisor.value) {
+            conflictMessage.textContent = 'First and second supervisors cannot be the same person';
+            conflictAlert.classList.remove('d-none');
+            submitBtn.disabled = true;
+            return;
+        }
+
+        // Check for schedule conflicts (this would be an AJAX call in a real implementation)
+        if (firstSupervisor.value && examDate.value && examPeriod.value) {
+            // Simulate checking for conflicts
+            const hasConflict = Math.random() > 0.7; // Replace with actual check
+            
+            if (hasConflict) {
+                conflictMessage.textContent = 'This supervisor is already assigned to another exam at the same time';
+                conflictAlert.classList.remove('d-none');
+                
+                // Show detailed conflict information
+                conflictDetails.innerHTML = `
+                    <div class="col-md-6">
+                        <div class="card supervisor-card conflict">
+                            <div class="card-body">
+                                <h6><i class="fas fa-user-tie text-danger me-2"></i>Supervisor Conflict</h6>
+                                <p class="mb-1"><strong>Name:</strong> ${supervisors[firstSupervisor.value].name}</p>
+                                <p class="mb-1"><strong>Current Assignment:</strong></p>
+                                <ul>
+                                    <li>Course: COMP 304 (Data Structures)</li>
+                                    <li>Date: ${examDate.value}</li>
+                                    <li>Period: ${examPeriod.options[examPeriod.selectedIndex].text}</li>
+                                    <li>Room: F12</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="alert alert-warning h-100">
+                            <h6><i class="fas fa-info-circle me-2"></i>Resolution Options</h6>
+                            <p>Please select a different supervisor or change the exam schedule.</p>
+                            <button class="btn btn-sm btn-outline-primary me-2">View Supervisor Schedule</button>
+                            <button class="btn btn-sm btn-outline-secondary">Find Available Supervisors</button>
+                        </div>
+                    </div>
+                `;
+                conflictCard.classList.remove('d-none');
+                submitBtn.disabled = true;
+            }
+        }
+    }
+
+    // Initialize supervisor info displays
+    updateSupervisorInfo(firstSupervisor, document.getElementById('firstSupervisorInfo'));
+    updateSupervisorInfo(secondSupervisor, document.getElementById('secondSupervisorInfo'));
+
+    // Set up event listeners
+    firstSupervisor.addEventListener('change', function() {
+        updateSupervisorInfo(firstSupervisor, document.getElementById('firstSupervisorInfo'));
+        checkSupervisorConflict();
+    });
+    
+    secondSupervisor.addEventListener('change', function() {
+        updateSupervisorInfo(secondSupervisor, document.getElementById('secondSupervisorInfo'));
+        checkSupervisorConflict();
+    });
+    
+    examDate.addEventListener('change', checkSupervisorConflict);
+    examPeriod.addEventListener('change', checkSupervisorConflict);
+
+    // Highlight today's date
+    const today = new Date().toISOString().split('T')[0];
+    if (examDate.value === today) {
+        examDate.classList.add('date-highlight');
+    }
+    examDate.addEventListener('change', function() {
+        if (this.value === today) {
+            this.classList.add('date-highlight');
+        } else {
+            this.classList.remove('date-highlight');
+        }
+    });
+});
+</script>
+{% endblock %}

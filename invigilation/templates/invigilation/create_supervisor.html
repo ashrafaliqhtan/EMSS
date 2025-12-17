@@ -1,0 +1,133 @@
+{% extends 'invigilation/based.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Create Supervisor Allocation{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+          <div class="d-flex justify-content-between align-items-center">
+            <h2 class="h5 mb-0">
+              <i class="bi bi-person-gear me-2"></i>Create Supervisor Allocation
+            </h2>
+            <a href="{% url 'schedule' %}" class="btn btn-sm btn-outline-light">
+              <i class="bi bi-arrow-left me-1"></i> Back to Schedule
+            </a>
+          </div>
+        </div>
+        
+        <div class="card-body">
+          <form method="post" class="needs-validation" novalidate>
+            {% csrf_token %}
+            
+            {% if form.non_field_errors %}
+              <div class="alert alert-danger">
+                {% for error in form.non_field_errors %}
+                  <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error }}
+                {% endfor %}
+              </div>
+            {% endif %}
+            
+            <div class="row g-3">
+              {% for field in form %}
+                <div class="col-md-6 mb-3">
+                  <div class="form-floating">
+                    {{ field|as_crispy_field }}
+                    {% if field.help_text %}
+                      <div class="form-text">{{ field.help_text }}</div>
+                    {% endif %}
+                  </div>
+                  {% for error in field.errors %}
+                    <div class="invalid-feedback d-block">
+                      <i class="bi bi-exclamation-circle me-1"></i>{{ error }}
+                    </div>
+                  {% endfor %}
+                </div>
+              {% endfor %}
+            </div>
+            
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4 border-top pt-3">
+              <button type="reset" class="btn btn-outline-secondary me-md-2">
+                <i class="bi bi-eraser me-1"></i> Reset Form
+              </button>
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-save me-1"></i> Create Allocation
+              </button>
+            </div>
+          </form>
+        </div>
+        
+        <div class="card-footer bg-light">
+          <small class="text-muted">
+            <i class="bi bi-info-circle me-1"></i> Please fill all required fields to create a new supervisor allocation.
+          </small>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Enhanced form validation
+document.addEventListener('DOMContentLoaded', function() {
+  // Select all form elements with validation needs
+  const forms = document.querySelectorAll('.needs-validation');
+  
+  // Add validation to each form
+  forms.forEach(form => {
+    form.addEventListener('submit', function(event) {
+      if (!form.checkValidity()) {
+        event.preventDefault();
+        event.stopPropagation();
+        
+        // Add error classes to invalid fields
+        form.querySelectorAll(':invalid').forEach(field => {
+          field.closest('.form-floating').classList.add('is-invalid');
+        });
+      }
+      
+      form.classList.add('was-validated');
+    }, false);
+    
+    // Add real-time validation on field blur
+    form.querySelectorAll('input, select, textarea').forEach(field => {
+      field.addEventListener('blur', () => {
+        if (!field.checkValidity()) {
+          field.closest('.form-floating').classList.add('is-invalid');
+        } else {
+          field.closest('.form-floating').classList.remove('is-invalid');
+        }
+      });
+    });
+  });
+});
+</script>
+{% endblock %}
+
+{% block extra_styles %}
+<style>
+  .form-floating {
+    margin-bottom: 1rem;
+  }
+  .form-floating label {
+    color: #495057;
+  }
+  .is-invalid .form-control {
+    border-color: #dc3545;
+  }
+  .is-invalid label {
+    color: #dc3545;
+  }
+  .card {
+    border-radius: 0.5rem;
+  }
+  .card-header {
+    border-radius: 0.5rem 0.5rem 0 0 !important;
+  }
+</style>
+{% endblock %}

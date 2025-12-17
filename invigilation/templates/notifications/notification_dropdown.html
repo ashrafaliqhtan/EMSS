@@ -1,0 +1,22 @@
+<!-- invigilation/templates/notifications/notification_dropdown.html -->
+<div class="dropdown-menu dropdown-menu-end p-2" style="min-width: 320px;">
+    <h6 class="dropdown-header">الإشعارات الحديثة</h6>
+    <div class="list-group">
+        {% for notification in request.notifications %}
+        <a href="{% if notification.link %}{{ notification.link }}{% else %}#{% endif %}" 
+           class="list-group-item list-group-item-action small py-2 {% if not notification.read %}bg-light{% endif %}">
+            <div class="d-flex align-items-center">
+                <div class="me-2">
+                    <i class="fas fa-bell text-primary"></i>
+                </div>
+                <div>
+                    {{ notification.message }}
+                    <div class="text-muted small">{{ notification.created_at|timesince }}</div>
+                </div>
+            </div>
+        </a>
+        {% empty %}
+        <div class="text-center text-muted small py-3">لا توجد إشعارات جديدة</div>
+        {% endfor %}
+    </div>
+</div>

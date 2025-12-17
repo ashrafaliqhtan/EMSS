@@ -1,0 +1,84 @@
+<!-- invigilation/templates/partials/exam_schedule_table.html -->
+<thead class="table-light">
+    <tr>
+        <th>Date</th>
+        <th>Exam</th>
+        <th>Period</th>
+        <th>Hall</th>
+        <th>Invigilators</th>
+        <th>Status</th>
+        <th>Actions</th>
+    </tr>
+</thead>
+<tbody>
+    {% for exam in upcoming_exams %}
+    <tr>
+        <td>
+            <div class="d-flex flex-column">
+                <span class="fw-bold">{{ exam.exam_date|date:"D, M j" }}</span>
+                <small class="text-muted">{{ exam.exam_date|date:"Y" }}</small>
+            </div>
+        </td>
+        <td>
+            <a href="{% url 'exam_detail' exam.pk %}" class="text-decoration-none">
+                {{ exam.exam_name|truncatechars:20 }}
+            </a>
+        </td>
+        <td>
+            <span class="badge bg-{% if exam.exam_period == 'AM' %}info{% else %}primary{% endif %}">
+                {{ exam.get_exam_period_display }}
+            </span>
+        </td>
+        <td>{{ exam.exam_hall.hall_name }}</td>
+        <td>
+            <div class="avatar-group">
+                {% if exam.invigilator1 %}
+                <div class="avatar avatar-xs" data-bs-toggle="tooltip" title="{{ exam.invigilator1.lecturer_name }}">
+                    <span class="avatar-initial bg-primary rounded-circle">
+                        {{ exam.invigilator1.lecturer_name|first }}
+                    </span>
+                </div>
+                {% endif %}
+                {% if exam.invigilator2 %}
+                <div class="avatar avatar-xs" data-bs-toggle="tooltip" title="{{ exam.invigilator2.lecturer_name }}">
+                    <span class="avatar-initial bg-success rounded-circle">
+                        {{ exam.invigilator2.lecturer_name|first }}
+                    </span>
+                </div>
+                {% endif %}
+            </div>
+        </td>
+        <td>
+            {% if exam.exam_date == today %}
+            <span class="badge bg-warning">Today</span>
+            {% elif exam.exam_date < today %}
+            <span class="badge bg-secondary">Completed</span>
+            {% else %}
+            <span class="badge bg-success">Upcoming</span>
+            {% endif %}
+        </td>
+        <td>
+            <div class="dropdown">
+                <button class="btn btn-sm btn-icon" type="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-ellipsis-v"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="{% url 'exam_detail' exam.pk %}"><i class="fas fa-eye me-2"></i>View</a></li>
+                    <li><a class="dropdown-item" href="{% url 'edit_exam' exam.pk %}"><i class="fas fa-edit me-2"></i>Edit</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item text-danger" href="{% url 'delete_exam' exam.pk %}"><i class="fas fa-trash me-2"></i>Delete</a></li>
+                </ul>
+            </div>
+        </td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="7" class="text-center py-4">
+            <div class="d-flex flex-column align-items-center">
+                <i class="fas fa-calendar-times fs-4 text-muted mb-2"></i>
+                <span class="text-muted">No exams scheduled for this period</span>
+            </div>
+        </td>
+    </tr>
+    {% endfor %}
+</tbody>

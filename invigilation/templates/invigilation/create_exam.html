@@ -1,0 +1,57 @@
+{% extends 'invigilation/based.html' %}
+{% load widget_tweaks %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-lg">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0">Create New Exam</h3>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    {{ form.exam_name.label_tag }}
+                    {% render_field form.exam_name class="form-control" %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.exam_date.label_tag }}
+                    {% render_field form.exam_date class="form-control" %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.exam_hall.label_tag }}
+                    {% render_field form.exam_hall class="form-select" %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.exam_type.label_tag }}
+                    {% render_field form.exam_type class="form-select" %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.exam_period.label_tag }}
+                    {% render_field form.exam_period class="form-control" %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.invigilator1.label_tag }}
+                    {% render_field form.invigilator1 class="form-select" %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.invigilator2.label_tag }}
+                    {% render_field form.invigilator2 class="form-select" %}
+                </div>
+
+                <button type="submit" class="btn btn-success w-100">Create Exam</button>
+            </form>
+        </div>
+    </div>
+    <div class="text-center mt-3">
+        <a href="{% url 'exam_list' %}" class="btn btn-outline-secondary">Back to Exam List</a>
+    </div>
+</div>
+{% endblock %}

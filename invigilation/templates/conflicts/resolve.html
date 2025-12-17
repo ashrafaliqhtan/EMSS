@@ -1,0 +1,69 @@
+{% extends 'conflicts/based.html' %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header bg-{{ conflict.resolved|yesno:'success,danger' }}">
+        <h3 class="card-title">تفاصيل التعارض</h3>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <dl class="row">
+                    <dt class="col-sm-4">نوع التعارض:</dt>
+                    <dd class="col-sm-8">{{ conflict.get_conflict_type_display }}</dd>
+                    
+                    <dt class="col-sm-4">تاريخ الإنشاء:</dt>
+                    <dd class="col-sm-8">{{ conflict.created_at }}</dd>
+                    
+                    <dt class="col-sm-4">الوصف:</dt>
+                    <dd class="col-sm-8">{{ conflict.description }}</dd>
+                </dl>
+            </div>
+            
+            <div class="col-md-6">
+                {% if related_object %}
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">الكائن المتعلق</h4>
+                    </div>
+                    <div class="card-body">
+                        {% if conflict.conflict_type == 'LECTURER' %}
+                        <p>المحاضر: {{ related_object.lecturer_name }}</p>
+                        {% elif conflict.conflict_type == 'HALL' %}
+                        <p>القاعة: {{ related_object.hall_name }}</p>
+                        {% elif conflict.conflict_type == 'TIMING' %}
+                        <p>التوقيت: {{ related_object.exam_date }} - {{ related_object.exam_period }}</p>
+                        {% endif %}
+                        
+                        <a href="{{ related_object.get_absolute_url }}" class="btn btn-sm btn-primary">
+                            عرض التفاصيل
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <hr>
+        
+        {% if not conflict.resolved %}
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="resolution_notes">ملاحظات الحل:</label>
+                <textarea class="form-control" id="resolution_notes" name="resolution_notes" rows="3"></textarea>
+            </div>
+            <button type="submit" class="btn btn-success">
+                <i class="fas fa-check"></i> تم حل التعارض
+            </button>
+        </form>
+        {% else %}
+        <div class="alert alert-success">
+            <h5><i class="icon fas fa-check"></i> تم حل هذا التعارض</h5>
+            <p><strong>بواسطة:</strong> {{ conflict.resolved_by.get_full_name }} في {{ conflict.resolved_at }}</p>
+            <p><strong>ملاحظات الحل:</strong> {{ conflict.resolution_notes }}</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

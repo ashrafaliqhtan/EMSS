@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Delete All Lecturers</h2>
+    <p class="text-danger">Warning: This will permanently delete all lecturers!</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Delete All</button>
+        <a href="{% url 'lecturers' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

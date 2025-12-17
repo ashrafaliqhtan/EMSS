@@ -1,0 +1,391 @@
+{% extends 'invigilation/based.html' %}
+{% block title %}Backend Reports Dashboard{% endblock %}
+
+{% block extra_head %}
+  <!-- CDN Resources with integrity checks -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js" integrity="sha384-QgN7t2AekY5JxXOF3Sd6jXlJpZ1e0Kz6RZ6C6Y5X5x5f5f5f5f5f5f5f5f5f5f5f5" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js" integrity="sha384-9/5Vj5C5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@1.0.0/dist/chartjs-adapter-moment.min.js" integrity="sha384-9/5Vj5C5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" integrity="sha384-9/5Vj5C5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5" crossorigin="anonymous">
+
+
+
+<!-- Chart.js Core Library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+
+<!-- Moment.js for Date Handling -->
+<script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
+
+<!-- Chart.js Adapter for Moment -->
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@1.0.0/dist/chartjs-adapter-moment.min.js"></script>
+
+<!-- Bootstrap Icons (Optional) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+
+<!-- Zoom Plugin (Optional) -->
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
+
+
+  
+  <style>
+    :root {
+      --chart-primary: rgba(54, 162, 235, 1);
+      --chart-secondary: rgba(75, 192, 192, 1);
+      --chart-bg: rgba(54, 162, 235, 0.1);
+    }
+    
+    .card-header {
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+    
+ .chart-container {
+  position: relative;
+  height: 400px;
+  width: 100%;
+}
+    
+    .report-section {
+      margin-bottom: 2.5rem;
+    }
+    
+    .table-title {
+      border-bottom: 2px solid #dee2e6;
+      padding-bottom: 0.75rem;
+      margin-bottom: 1.5rem;
+      font-weight: 600;
+    }
+    
+    .badge-count {
+      font-size: 0.85rem;
+      margin-left: 0.5rem;
+      vertical-align: middle;
+    }
+    
+    .summary-card {
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    
+    .summary-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    
+    .chart-controls {
+      background-color: rgba(255,255,255,0.1);
+      border-radius: 20px;
+      padding: 0.25rem;
+    }
+    
+    @media print {
+      .no-print, .btn-group {
+        display: none !important;
+      }
+      
+      .card {
+        break-inside: avoid;
+        border: 1px solid #dee2e6 !important;
+      }
+      
+      .chart-container {
+        height: 300px;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .chart-container {
+        height: 300px;
+      }
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid my-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2 mb-0">
+      <i class="bi bi-graph-up me-2 text-primary"></i>Examination Reports Dashboard
+    </h1>
+    <div class="no-print">
+      <button class="btn btn-outline-primary me-2" onclick="window.print()">
+        <i class="bi bi-printer me-1"></i> Print Report
+      </button>
+      <button class="btn btn-outline-secondary" id="exportDataBtn">
+        <i class="bi bi-download me-1"></i> Export Data
+      </button>
+    </div>
+  </div>
+  
+  <!-- Summary Cards -->
+  <div class="row mb-4 g-3">
+    <div class="col-md-4">
+      <div class="card text-white bg-primary summary-card h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h5 class="card-title">Total Exams</h5>
+              <h2 class="mb-0">{{ total_exams }}</h2>
+              <small class="text-white-50">Last 30 days: +12%</small>
+            </div>
+            <i class="bi bi-journal-text" style="font-size: 2.5rem; opacity: 0.7;"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card text-white bg-success summary-card h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h5 class="card-title">Active Lecturers</h5>
+              <h2 class="mb-0">{{ total_lecturers }}</h2>
+              <small class="text-white-50">{{ lecturer_report|length }} categories</small>
+            </div>
+            <i class="bi bi-people" style="font-size: 2.5rem; opacity: 0.7;"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card text-white bg-info summary-card h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h5 class="card-title">Exam Periods</h5>
+              <h2 class="mb-0">{{ exam_periods }}</h2>
+              <small class="text-white-50">{{ exam_report|length }} dates</small>
+            </div>
+            <i class="bi bi-calendar-week" style="font-size: 2.5rem; opacity: 0.7;"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart Section -->
+  <div class="card mb-5 shadow-sm">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center flex-wrap">
+      <span><i class="bi bi-bar-chart-line me-2"></i>Exam Trends Over Time</span>
+      <div class="btn-group btn-group-sm chart-controls mt-2 mt-md-0">
+        <button class="btn btn-light active" data-unit="day">Daily</button>
+        <button class="btn btn-outline-light" data-unit="week">Weekly</button>
+        <button class="btn btn-outline-light" data-unit="month">Monthly</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="chart-container">
+        <canvas id="examChart"></canvas>
+      </div>
+      <div class="mt-3 text-end text-muted small">
+        <i class="bi bi-info-circle me-1"></i> Click and drag to zoom, double-click to reset
+      </div>
+    </div>
+  </div>
+  
+  <!-- Reports Sections -->
+  <div class="row">
+    <!-- Exam Report Table -->
+    <div class="col-lg-6 report-section">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-calendar-date me-2"></i>Exam Schedule Report</span>
+          <span class="badge bg-light text-dark">{{ exam_report|length }} dates</span>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-hover table-sm">
+              <thead class="table-light">
+                <tr>
+                  <th>Exam Date</th>
+                  <th class="text-end">Exams Count</th>
+                  <th class="text-end">% of Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in exam_report %}
+                <tr>
+                  <td>{{ item.exam_date|date:"M d, Y" }}</td>
+                  <td class="text-end">{{ item.count }}</td>
+                  <td class="text-end">{{ item.count|floatformat:2 }}%</td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="3" class="text-center text-muted py-4">No exam data available</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+              <tfoot class="table-light">
+                <tr>
+                  <th>Total</th>
+                  <th class="text-end">{{ total_exams }}</th>
+                  <th class="text-end">100%</th>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Lecturer Report Table -->
+    <div class="col-lg-6 report-section">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-person-lines-fill me-2"></i>Lecturer Distribution</span>
+          <span class="badge bg-light text-dark">{{ lecturer_report|length }} types</span>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-hover table-sm">
+              <thead class="table-light">
+                <tr>
+                  <th>Invigilation Type</th>
+                  <th class="text-end">Lecturers</th>
+                  <th class="text-end">% of Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in lecturer_report %}
+                <tr>
+                  <td>{{ item.invigilation_type|default:"Not Specified" }}</td>
+                  <td class="text-end">{{ item.count }}</td>
+                  <td class="text-end">{{ item.percentage|floatformat:2 }}%</td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="3" class="text-center text-muted py-4">No lecturer data available</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+              <tfoot class="table-light">
+                <tr>
+                  <th>Total</th>
+                  <th class="text-end">{{ total_lecturers }}</th>
+                  <th class="text-end">100%</th>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    try {
+        // Parse the data from Django template
+        const examDates = JSON.parse('{{ exam_dates|escapejs }}');
+        const examCounts = JSON.parse('{{ exam_counts|escapejs }}');
+        
+        // Format dates for Chart.js
+        const formattedDates = examDates.map(date => moment(date));
+        
+        // Get chart canvas
+        const ctx = document.getElementById('examChart').getContext('2d');
+        
+        // Chart configuration
+        const chartConfig = {
+            type: 'line',
+            data: {
+                labels: formattedDates,
+                datasets: [{
+                    label: 'Number of Exams',
+                    data: examCounts,
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            title: function(context) {
+                                return moment(context[0].label).format('MMMM D, YYYY');
+                            },
+                            label: function(context) {
+                                return `Exams: ${context.raw}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        type: 'time',
+                        time: {
+                            unit: 'day',
+                            tooltipFormat: 'MMM D, YYYY',
+                            displayFormats: {
+                                day: 'MMM D',
+                                week: 'MMM D',
+                                month: 'MMM YYYY'
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Exam Date'
+                        },
+                        grid: {
+                            display: false
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0,
+                            stepSize: 1
+                        },
+                        title: {
+                            display: true,
+                            text: 'Number of Exams'
+                        }
+                    }
+                }
+            }
+        };
+        
+        // Create the chart
+        const examChart = new Chart(ctx, chartConfig);
+        
+        // Time unit switching functionality
+        document.querySelectorAll('[data-unit]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const unit = this.dataset.unit;
+                examChart.options.scales.x.time.unit = unit;
+                examChart.update();
+                
+                // Update button states
+                document.querySelectorAll('[data-unit]').forEach(b => {
+                    b.classList.remove('active', 'btn-light');
+                    b.classList.add('btn-outline-light');
+                });
+                this.classList.add('active', 'btn-light');
+                this.classList.remove('btn-outline-light');
+            });
+        });
+        
+    } catch (error) {
+        console.error('Chart initialization error:', error);
+        document.getElementById('examChart').innerHTML = `
+            <div class="alert alert-danger">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                Error loading chart data. Please try again later.
+            </div>
+        `;
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,253 @@
+{% extends 'conflicts/based.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">
+                            <i class="fas fa-chalkboard-teacher me-2"></i>تفاصيل المحاضر: {{ lecturer.lecturer_name }}
+                        </h4>
+                        <span class="badge bg-light text-dark">
+                            <i class="fas fa-id-card me-1"></i> {{ lecturer.lecturer_code }}
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Lecturer Information -->
+                        <div class="col-md-4">
+                            <div class="card mb-4">
+                                <div class="card-header bg-info text-white">
+                                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>معلومات المحاضر</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="avatar avatar-xl bg-primary text-white rounded-circle me-3">
+                                            {{ lecturer.lecturer_name|first|upper }}
+                                        </div>
+                                        <div>
+                                            <h4 class="mb-0">{{ lecturer.lecturer_name }}</h4>
+                                            <p class="text-muted mb-0">{{ lecturer.get_lecturer_level_display }}</p>
+                                        </div>
+                                    </div>
+                                    <ul class="list-group list-group-flush">
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            <span><i class="fas fa-id-card me-2"></i>الكود</span>
+                                            <span class="fw-bold">{{ lecturer.lecturer_code }}</span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            <span><i class="fas fa-user-tag me-2"></i>الدرجة</span>
+                                            <span class="fw-bold">{{ lecturer.get_lecturer_level_display }}</span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            <span><i class="fas fa-tasks me-2"></i>نوع المراقبة</span>
+                                            <span class="fw-bold">{{ lecturer.get_invigilation_type_display }}</span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            <span><i class="fas fa-graduation-cap me-2"></i>نوع الامتحان</span>
+                                            <span class="fw-bold">{{ lecturer.get_exam_type_display }}</span>
+                                        </li>
+                                        {% if lecturer.examsupervisor %}
+                                        <li class="list-group-item d-flex justify-content-between align-items-center bg-light">
+                                            <span><i class="fas fa-user-shield me-2"></i>حالة المراقب</span>
+                                            <span class="badge bg-success">مراقب معتمد</span>
+                                        </li>
+                                        {% endif %}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Conflicts Section -->
+                        <div class="col-md-8">
+                            <div class="card mb-4">
+                                <div class="card-header bg-warning text-white">
+                                    <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>التعارضات</h5>
+                                </div>
+                                <div class="card-body">
+                                    {% if conflicts %}
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>النوع</th>
+                                                    <th>التاريخ</th>
+                                                    <th>الفترة</th>
+                                                    <th>عدد التعارضات</th>
+                                                    <th>التفاصيل</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for conflict in conflicts %}
+                                                <tr>
+                                                    <td>
+                                                        {% if conflict.type == 'exam' %}
+                                                        <span class="badge bg-danger">امتحان</span>
+                                                        {% else %}
+                                                        <span class="badge bg-info">قاعة</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>{{ conflict.date|date:"Y-m-d" }}</td>
+                                                    <td>{{ conflict.period }}</td>
+                                                    <td><span class="badge bg-danger">{{ conflict.count }}</span></td>
+                                                    <td>
+                                                        <div class="d-flex flex-wrap gap-1">
+                                                            {% for detail in conflict.details %}
+                                                            <span class="badge bg-secondary">{{ detail }}</span>
+                                                            {% endfor %}
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    {% else %}
+                                    <div class="alert alert-success">
+                                        <i class="fas fa-check-circle me-2"></i> لا توجد تعارضات لهذا المحاضر
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Schedule Section -->
+                    <div class="card">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>جدول المحاضر</h5>
+                        </div>
+                        <div class="card-body">
+                            <ul class="nav nav-tabs" id="scheduleTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="exams-tab" data-bs-toggle="tab" 
+                                            data-bs-target="#exams" type="button" role="tab">
+                                        <i class="fas fa-clipboard-list me-1"></i> الامتحانات
+                                    </button>
+                                </li>
+                                {% if lecturer.examsupervisor %}
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="assignments-tab" data-bs-toggle="tab" 
+                                            data-bs-target="#assignments" type="button" role="tab">
+                                        <i class="fas fa-door-open me-1"></i> تخصيص القاعات
+                                    </button>
+                                </li>
+                                {% endif %}
+                            </ul>
+                            <div class="tab-content mt-3" id="scheduleTabContent">
+                                <!-- Exams Tab -->
+                                <div class="tab-pane fade show active" id="exams" role="tabpanel">
+                                    {% if schedule.exams %}
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered table-hover">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>التاريخ</th>
+                                                    <th>الفترة</th>
+                                                    <th>اسم الامتحان</th>
+                                                    <th>القاعة</th>
+                                                    <th>نوع الامتحان</th>
+                                                    <th>الدور</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for exam in schedule.exams %}
+                                                <tr>
+                                                    <td>{{ exam.exam_date|date:"Y-m-d" }}</td>
+                                                    <td>{{ exam.exam_period }}</td>
+                                                    <td>{{ exam.exam_name }}</td>
+                                                    <td>{{ exam.exam_hall.hall_name }}</td>
+                                                    <td>{{ exam.get_exam_type_display }}</td>
+                                                    <td>
+                                                        {% if exam.invigilator1 == lecturer %}
+                                                        <span class="badge bg-primary">مراقب أول</span>
+                                                        {% else %}
+                                                        <span class="badge bg-secondary">مراقب ثاني</span>
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    {% else %}
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle me-2"></i> لا يوجد امتحانات مسجلة لهذا المحاضر
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Assignments Tab (only shown if lecturer is a supervisor) -->
+                                {% if lecturer.examsupervisor %}
+                                <div class="tab-pane fade" id="assignments" role="tabpanel">
+                                    {% if schedule.assignments %}
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered table-hover">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>التاريخ</th>
+                                                    <th>الفترة</th>
+                                                    <th>المادة</th>
+                                                    <th>القاعة</th>
+                                                    <th>عدد الطلاب</th>
+                                                    <th>الدور</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for assignment in schedule.assignments %}
+                                                <tr>
+                                                    <td>{{ assignment.exam_date|date:"Y-m-d" }}</td>
+                                                    <td>{{ assignment.get_exam_period_display }}</td>
+                                                    <td>{{ assignment.course_code }} - {{ assignment.course_name }}</td>
+                                                    <td>{{ assignment.room_nos }}</td>
+                                                    <td>{{ assignment.total_students }}</td>
+                                                    <td>
+                                                        {% if assignment.first_supervisor == lecturer.examsupervisor %}
+                                                        <span class="badge bg-primary">مراقب أول</span>
+                                                        {% else %}
+                                                        <span class="badge bg-secondary">مراقب ثاني</span>
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    {% else %}
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle me-2"></i> لا يوجد تخصيص قاعات لهذا المحاضر
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    // Initialize DataTables
+    $('.table').DataTable({
+        "language": {
+            "url": "//cdn.datatables.net/plug-ins/1.10.20/i18n/Arabic.json"
+        },
+        "responsive": true,
+        "autoWidth": false,
+        "order": [[1, 'asc']]  // Sort by date by default
+    });
+    
+    // Initialize tooltips
+    $('[data-bs-toggle="tooltip"]').tooltip();
+});
+</script>
+{% endblock %}

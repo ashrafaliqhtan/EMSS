@@ -1,0 +1,303 @@
+{% extends 'conflicts/based.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-info">
+                <h3 class="card-title">معلومات المحاضر</h3>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-5">اسم المحاضر:</dt>
+                    <dd class="col-sm-7">{{ lecturer.lecturer_name }}</dd>
+                    
+                    <dt class="col-sm-5">الكود:</dt>
+                    <dd class="col-sm-7">{{ lecturer.lecturer_code }}</dd>
+                    
+                    <dt class="col-sm-5">المستوى:</dt>
+                    <dd class="col-sm-7">{{ lecturer.get_lecturer_level_display }}</dd>
+                    
+                    <dt class="col-sm-5">نوع المراقبة:</dt>
+                    <dd class="col-sm-7">{{ lecturer.get_invigilation_type_display }}</dd>
+                    
+                                       <dt class="col-sm-5">نوع الامتحان:</dt>
+                    <dd class="col-sm-7">{{ lecturer.get_exam_type_display }}</dd>
+                </dl>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header bg-warning">
+                <h3 class="card-title">إحصائيات التعارضات</h3>
+            </div>
+            <div class="card-body">
+                <div class="info-box mb-3">
+                    <span class="info-box-icon bg-danger"><i class="fas fa-exclamation-triangle"></i></span>
+                    <div class="info-box-content">
+                        <span class="info-box-text">إجمالي التعارضات</span>
+                        <span class="info-box-number">{{ conflicts|length }}</span>
+                    </div>
+                </div>
+                
+                <div class="info-box mb-3">
+                    <span class="info-box-icon bg-success"><i class="fas fa-calendar-check"></i></span>
+                    <div class="info-box-content">
+                        <span class="info-box-text">إجمالي الامتحانات</span>
+                        <span class="info-box-number">{{ schedule.exams.count }}</span>
+                    </div>
+                </div>
+                
+                <div class="info-box mb-3">
+                    <span class="info-box-icon bg-primary"><i class="fas fa-user-tie"></i></span>
+                    <div class="info-box-content">
+                        <span class="info-box-text">إجمالي المراقبات</span>
+                        <span class="info-box-number">{{ schedule.assignments.count }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-danger">
+                <h3 class="card-title">التعارضات</h3>
+                <div class="card-tools">
+                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if conflicts %}
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>التاريخ</th>
+                                <th>الفترة</th>
+                                <th>عدد التعارضات</th>
+                                <th>التفاصيل</th>
+                                <th>إجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for conflict in conflicts %}
+                            <tr>
+                                <td>{{ conflict.date|date:"Y-m-d" }}</td>
+                                <td>{{ conflict.period }}</td>
+                                <td>
+                                    <span class="badge bg-danger">{{ conflict.count }}</span>
+                                </td>
+                                <td>
+                                    <ul class="list-unstyled">
+                                        {% for detail in conflict.details|slice:":3" %}
+                                        <li>{{ detail }}</li>
+                                        {% endfor %}
+                                        {% if conflict.details|length > 3 %}
+                                        <li>و {{ conflict.details|length|add:"-3" }} أخرى</li>
+                                        {% endif %}
+                                    </ul>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-info view-details" 
+                                            data-date="{{ conflict.date|date:'Y-m-d' }}"
+                                            data-period="{{ conflict.period }}">
+                                        <i class="fas fa-eye"></i> عرض التفاصيل
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle mr-2"></i> لا توجد تعارضات مسجلة لهذا المحاضر
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header bg-primary">
+                <h3 class="card-title">جدول المحاضر</h3>
+                <div class="card-tools">
+                    <div class="input-group input-group-sm">
+                        <input type="text" class="form-control" placeholder="بحث..." id="schedule-search">
+                        <div class="input-group-append">
+                            <button class="btn btn-primary">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover" id="schedule-table">
+                        <thead>
+                            <tr>
+                                <th>التاريخ</th>
+                                <th>الفترة</th>
+                                <th>النوع</th>
+                                <th>الاسم</th>
+                                <th>المكان</th>
+                                <th>حالة التعارض</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for exam in schedule.exams %}
+                            <tr>
+                                <td>{{ exam.exam_date|date:"Y-m-d" }}</td>
+                                <td>{{ exam.exam_period }}</td>
+                                <td>
+                                    <span class="badge bg-info">امتحان</span>
+                                </td>
+                                <td>{{ exam.exam_name }}</td>
+                                <td>{{ exam.exam_hall.hall_name }}</td>
+                                <td>
+                                    {% if exam.has_conflict %}
+                                    <span class="badge bg-danger">تعارض</span>
+                                    {% else %}
+                                    <span class="badge bg-success">سليم</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            
+                            {% for assignment in schedule.assignments %}
+                            <tr>
+                                <td>{{ assignment.exam_date|date:"Y-m-d" }}</td>
+                                <td>{{ assignment.exam_period }}</td>
+                                <td>
+                                    <span class="badge bg-warning">مراقبة</span>
+                                </td>
+                                <td>{{ assignment.course_code }} - {{ assignment.course_name }}</td>
+                                <td>{{ assignment.room_nos }}</td>
+                                <td>
+                                    {% if assignment.has_conflict %}
+                                    <span class="badge bg-danger">تعارض</span>
+                                    {% else %}
+                                    <span class="badge bg-success">سليم</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer clearfix">
+                <ul class="pagination pagination-sm m-0 float-right">
+                    <li class="page-item"><a class="page-link" href="#">&laquo;</a></li>
+                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                    <li class="page-item"><a class="page-link" href="#">&raquo;</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal لعرض تفاصيل التعارض -->
+<div class="modal fade" id="conflictDetailsModal" tabindex="-1" role="dialog" aria-labelledby="conflictDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-info">
+                <h5 class="modal-title" id="conflictDetailsModalLabel">تفاصيل التعارض</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <h5 class="mb-3">التعارضات في <span id="conflict-date"></span> - فترة <span id="conflict-period"></span></h5>
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="conflict-details-table">
+                        <thead>
+                            <tr>
+                                <th>النوع</th>
+                                <th>الاسم</th>
+                                <th>المكان</th>
+                                <th>الوقت</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- سيتم ملؤها بواسطة JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">إغلاق</button>
+                <button type="button" class="btn btn-primary">حل التعارض</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    // البحث في جدول المحاضر
+    $("#schedule-search").keyup(function() {
+        var value = $(this).val().toLowerCase();
+        $("#schedule-table tbody tr").filter(function() {
+            $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+        });
+    });
+    
+    // عرض تفاصيل التعارض
+    $(".view-details").click(function() {
+        var date = $(this).data('date');
+        var period = $(this).data('period');
+        
+        // تحديث عنوان النافذة
+        $("#conflict-date").text(date);
+        $("#conflict-period").text(period);
+        
+        // جلب البيانات عبر AJAX (هنا مثال فقط)
+        var mockData = [
+            { type: "امتحان", name: "امتحان البرمجة", location: "القاعة A1", time: "9:00-11:00" },
+            { type: "مراقبة", name: "مقدمة في الحاسوب", location: "القاعة B2", time: "9:00-11:00" }
+        ];
+        
+        // تفريغ الجدول
+        $("#conflict-details-table tbody").empty();
+        
+        // إضافة البيانات
+        mockData.forEach(function(item) {
+            $("#conflict-details-table tbody").append(
+                '<tr>' +
+                '<td>' + item.type + '</td>' +
+                '<td>' + item.name + '</td>' +
+                '<td>' + item.location + '</td>' +
+                '<td>' + item.time + '</td>' +
+                '</tr>'
+            );
+        });
+        
+        // عرض النافذة
+        $("#conflictDetailsModal").modal('show');
+    });
+    
+    // في الواقع التطبيق، يمكنك استخدام AJAX لجلب البيانات الحقيقية
+    /*
+    $.ajax({
+        url: '/api/conflict-details/',
+        data: {
+            lecturer_id: {{ lecturer.id }},
+            date: date,
+            period: period
+        },
+        success: function(data) {
+            // معالجة البيانات وعرضها
+        }
+    });
+    */
+});
+</script>
+{% endblock %}

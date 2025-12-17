@@ -1,0 +1,63 @@
+{% extends 'invigilation/based.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <!-- Search and header row -->
+    <div class="row mb-3">
+        <div class="col-md-8">
+            <h1>Exams</h1>
+        </div>
+        <div class="col-md-4">
+            <form method="get" class="d-flex">
+                <input type="text" name="q" class="form-control me-2" placeholder="Search exams..." value="{{ query }}">
+                <button class="btn btn-outline-primary" type="submit">Search</button>
+            </form>
+        </div>
+    </div>
+    <!-- Action buttons -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <a href="{% url 'create_exam' %}" class="btn btn-success">Create New Exam</a>
+        <a href="{% url 'upload_exams' %}" class="btn btn-info">Bulk Upload Exams</a>
+    </div>
+    {% if exams %}
+    <div class="table-responsive">
+        <table class="table table-striped table-hover align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>#</th>
+                    <th>Exam Name</th>
+                    <th>Date</th>
+                    <th>Hall</th>
+                    <th>Type</th>
+                    <th>Period</th>
+                    <th>Invigilators</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for exam in exams %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td><a href="{% url 'exam_detail' exam.pk %}">{{ exam.exam_name }}</a></td>
+                    <td>{{ exam.exam_date }}</td>
+                    <td>{{ exam.exam_hall }}</td>
+                    <td>{{ exam.exam_type }}</td>
+                    <td>{{ exam.exam_period }}</td>
+                    <td>
+                        {% if exam.invigilator1 %}{{ exam.invigilator1 }}{% endif %}
+                        {% if exam.invigilator2 %} , {{ exam.invigilator2 }}{% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'edit_exam' exam.pk %}" class="btn btn-sm btn-warning">Edit</a>
+                        <a href="{% url 'delete_exam' exam.pk %}" class="btn btn-sm btn-danger">Delete</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="text-muted">No exams available. Please create an exam.</p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,127 @@
+{% extends './activity.html' %} {% comment %} Dashboard Screen {% endcomment %}
+{% block activity_screen %}
+<main id="main" class="main pt-0 mt-4">
+	<div class="pagetitle">
+		<h1>Allocation Schedule</h1>
+		<nav>
+			<ol class="breadcrumb">
+				<li class="breadcrumb-item">
+					<a href="{% url 'dashboard' %}">Home</a>
+				</li>
+				<li class="breadcrumb-item">Allocation</li>
+				<li class="breadcrumb-item active">Lecturers</li>
+			</ol>
+		</nav>
+
+		<form
+			action="{% url 'schedule' %}"
+			method="POST"
+			enctype="multipart/form-data">
+			{% csrf_token %}
+			<!-- <div class="text-warning mb-1">
+				NB: The accepted format is "CSV" file type
+			</div> -->
+			<div class="input-group col-md-3">
+				<label for="course" class="input-group-text"
+					>Upload Course Schedule Data</label
+				>
+				<input
+					type="file"
+					class="form-control"
+					name="courses"
+					id="course"
+					aria-describedby="inputGroupFileAddon04"
+					accept=".csv" />
+				<button
+					class="btn btn-outline-success"
+					type="submit"
+					id="inputGroupFileAddon04">
+					Generate
+				</button>
+			</div>
+		</form>
+	</div>
+	<!-- End Page Title -->
+	<!-- ====================================INVIGILATORS TABLE SECTION==================================== -->
+
+	<section class="section">
+		<div class="row">
+			<div class="col-lg-12">
+				<div class="card">
+					<div class="card-body">
+						<h5 class="card-title">Invigilator Allocations</h5>
+						<!-- Table with stripped rows -->
+						<table class="table datatable">
+							<thead>
+								<tr>
+									<th scope="col">#</th>
+									<th scope="col">Lecturer Code</th>
+									<th scope="col">Exam Hall</th>
+									<th scope="col">Courses</th>
+									<th scope="col">Exam Type</th>
+									<th scope="col" style="width: 70px">
+										Exam Date
+									</th>
+									<th scope="col">Exam Period</th>
+								</tr>
+							</thead>
+							<tbody>
+								{% for data in invigilators %}
+								<tr>
+									<th scope="row">{{ data.id }}</th>
+									<td>{{ data.lecture_code }}</td>
+									<td>{{ data.exam_hall }}</td>
+									<td>{{ data.courses }}</td>
+									<td>{{ data.exam_type }}</td>
+									<td>{{ data.exam_date }}</td>
+									<td>{{ data.exam_period }}</td>
+								</tr>
+								{% endfor %}
+							</tbody>
+						</table>
+						<!-- End Table with stripped rows -->
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+	<!-- ====================================SUPERVISOR TABLE SECTION==================================== -->
+	<section class="section">
+		<div class="row">
+			<div class="col-lg-12">
+				<div class="card">
+					<div class="card-body">
+						<h5 class="card-title">Supervisor Allocations</h5>
+						<!-- Table with stripped rows -->
+						<table class="table datatable">
+							<thead>
+								<tr>
+									<th scope="col">#</th>
+									<th scope="col">Lecturer Code</th>
+									<th scope="col">Block</th>
+									<th scope="col">Exam Type</th>
+									<th scope="col">Exam Date</th>
+									<th scope="col">Exam Period</th>
+								</tr>
+							</thead>
+							<tbody>
+								{% for data in supervisors %}
+								<tr>
+									<th scope="row">{{ data.id }}</th>
+									<td>{{ data.lecture_code }}</td>
+									<td>{{ data.exam_block }}</td>
+									<td>{{ data.exam_type }}</td>
+									<td>{{ data.exam_date }}</td>
+									<td>{{ data.exam_period }}</td>
+								</tr>
+								{% endfor %}
+							</tbody>
+						</table>
+						<!-- End Table with stripped rows -->
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+</main>
+{% endblock activity_screen %}

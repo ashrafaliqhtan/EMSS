@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Exams Export</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        h1 { color: #333; text-align: center; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+    </style>
+</head>
+<body>
+    <h1>Exams Export</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Exam Name</th>
+                <th>Date</th>
+                <th>Hall</th>
+                <th>Type</th>
+                <th>Period</th>
+                <th>Invigilator 1</th>
+                <th>Invigilator 2</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for exam in exams %}
+            <tr>
+                <td>{{ exam.exam_name }}</td>
+                <td>{{ exam.exam_date }}</td>
+                <td>{{ exam.exam_hall.hall_name }}</td>
+                <td>{{ exam.exam_type }}</td>
+                <td>{{ exam.exam_period }}</td>
+                <td>{{ exam.invigilator1.lecturer_name|default:"" }}</td>
+                <td>{{ exam.invigilator2.lecturer_name|default:"" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

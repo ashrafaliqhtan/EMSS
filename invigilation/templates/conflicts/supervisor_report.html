@@ -1,0 +1,52 @@
+{% extends 'conflicts/based.html %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-primary">
+                <h3 class="card-title">تقرير تعارضات المراقب: {{ supervisor.name }}</h3>
+            </div>
+            <div class="card-body">
+                {% if conflicts %}
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                            <tr class="bg-light">
+                                <th>التاريخ</th>
+                                <th>الفترة</th>
+                                <th>التعارضات</th>
+                                <th>التفاصيل</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for conflict in conflicts %}
+                            <tr>
+                                <td>{{ conflict.assignment.exam_date|date:"Y-m-d" }}</td>
+                                <td>{{ conflict.assignment.get_exam_period_display }}</td>
+                                <td>
+                                    <span class="badge bg-danger">{{ conflict.overlapping_assignments|length }} تعارض</span>
+                                </td>
+                                <td>
+                                    <ul class="list-unstyled">
+                                        <li><strong>التخصيص الحالي:</strong> {{ conflict.assignment.course_code }}</li>
+                                        {% for overlap in conflict.overlapping_assignments %}
+                                        <li>يتعارض مع: {{ overlap.course_code }} ({{ overlap.room_nos }})</li>
+                                        {% endfor %}
+                                    </ul>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle"></i> لا توجد تعارضات لهذا المراقب
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends 'invigilation/based.html' %}
+
+{% block title %}Generate Schedule{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">
+                <i class="fas fa-calendar-plus me-2"></i>Generate Exam Schedule
+            </h4>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                This will randomly assign invigilators to all upcoming exams in the next 30 days.
+                Any existing assignments will be overwritten.
+            </div>
+            
+            <form method="POST">
+                {% csrf_token %}
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-danger btn-lg">
+                        <i class="fas fa-magic me-2"></i>Generate Schedule
+                    </button>
+                    <a href="{% url 'dashboard' %}" class="btn btn-secondary btn-lg">
+                        <i class="fas fa-times me-2"></i>Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

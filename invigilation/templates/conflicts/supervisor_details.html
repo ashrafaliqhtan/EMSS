@@ -1,0 +1,251 @@
+{% extends 'conflicts/based.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">
+                            <i class="fas fa-user-shield me-2"></i>تفاصيل المراقب: {{ supervisor.name }}
+                        </h4>
+                        <span class="badge bg-light text-dark">
+                            <i class="fas fa-id-card me-1"></i> {{ supervisor.department }}
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="card mb-4">
+                                <div class="card-header bg-info text-white">
+                                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>معلومات المراقب</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="avatar avatar-xl bg-primary text-white rounded-circle me-3">
+                                            {{ supervisor.name|first|upper }}
+                                        </div>
+                                        <div>
+                                            <h4 class="mb-0">{{ supervisor.name }}</h4>
+                                            <p class="text-muted mb-0">{{ supervisor.academic_degree }}</p>
+                                        </div>
+                                    </div>
+                                    <ul class="list-group list-group-flush">
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            <span><i class="fas fa-building me-2"></i>القسم</span>
+                                            <span class="fw-bold">{{ supervisor.department }}</span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            <span><i class="fas fa-graduation-cap me-2"></i>الدرجة العلمية</span>
+                                            <span class="fw-bold">{{ supervisor.academic_degree }}</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-8">
+                            <div class="card mb-4">
+                                <div class="card-header bg-warning text-white">
+                                    <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>التعارضات</h5>
+                                </div>
+                                <div class="card-body">
+                                    {% if conflicts %}
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>التاريخ</th>
+                                                    <th>الفترة</th>
+                                                    <th>المادة</th>
+                                                    <th>القاعة</th>
+                                                    <th>عدد التعارضات</th>
+                                                    <th>إجراءات</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for conflict in conflicts %}
+                                                <tr>
+                                                    <td>{{ conflict.assignment.exam_date|date:"Y-m-d" }}</td>
+                                                    <td>{{ conflict.assignment.get_exam_period_display }}</td>
+                                                    <td>{{ conflict.assignment.course_code }} - {{ conflict.assignment.course_name }}</td>
+                                                    <td>{{ conflict.assignment.room_nos }}</td>
+                                                    <td><span class="badge bg-danger">{{ conflict.overlapping_assignments.count }}</span></td>
+                                                    <td>
+                                                        <button class="btn btn-sm btn-info" data-bs-toggle="modal" 
+                                                                data-bs-target="#conflictDetails{{ forloop.counter }}">
+                                                            <i class="fas fa-eye"></i> التفاصيل
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    {% else %}
+                                    <div class="alert alert-success">
+                                        <i class="fas fa-check-circle me-2"></i> لا توجد تعارضات لهذا المراقب
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>جدول المراقب</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if schedule %}
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>التاريخ</th>
+                                            <th>الفترة</th>
+                                            <th>المادة</th>
+                                            <th>القاعة</th>
+                                            <th>عدد الطلاب</th>
+                                            <th>نوع المراقبة</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for assignment in schedule %}
+                                        <tr>
+                                            <td>{{ assignment.exam_date|date:"Y-m-d" }}</td>
+                                            <td>{{ assignment.get_exam_period_display }}</td>
+                                            <td>{{ assignment.course_code }} - {{ assignment.course_name }}</td>
+                                            <td>{{ assignment.room_nos }}</td>
+                                            <td>{{ assignment.total_students }}</td>
+                                            <td>
+                                                {% if assignment.first_supervisor == supervisor %}
+                                                <span class="badge bg-primary">مراقب أول</span>
+                                                {% else %}
+                                                <span class="badge bg-secondary">مراقب ثاني</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i> لا يوجد جدول متاح لهذا المراقب
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Conflict Details Modals -->
+{% for conflict in conflicts %}
+<div class="modal fade" id="conflictDetails{{ forloop.counter }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title">تفاصيل التعارض</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="card mb-3">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0">التعيين الأساسي</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <p><strong>المادة:</strong> {{ conflict.assignment.course_code }} - {{ conflict.assignment.course_name }}</p>
+                            </div>
+                            <div class="col-md-4">
+                                <p><strong>التاريخ:</strong> {{ conflict.assignment.exam_date|date:"Y-m-d" }}</p>
+                            </div>
+                            <div class="col-md-4">
+                                <p><strong>الفترة:</strong> {{ conflict.assignment.get_exam_period_display }}</p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <p><strong>القاعة:</strong> {{ conflict.assignment.room_nos }}</p>
+                            </div>
+                            <div class="col-md-4">
+                                <p><strong>عدد الطلاب:</strong> {{ conflict.assignment.total_students }}</p>
+                            </div>
+                            <div class="col-md-4">
+                                <p><strong>الدور:</strong> 
+                                    {% if conflict.assignment.first_supervisor == supervisor %}
+                                    <span class="badge bg-primary">مراقب أول</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">مراقب ثاني</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0">التعيينات المتعارضة</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>المادة</th>
+                                        <th>القاعة</th>
+                                        <th>عدد الطلاب</th>
+                                        <th>المراقب الأول</th>
+                                        <th>المراقب الثاني</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for overlap in conflict.overlapping_assignments %}
+                                    <tr>
+                                        <td>{{ overlap.course_code }} - {{ overlap.course_name }}</td>
+                                        <td>{{ overlap.room_nos }}</td>
+                                        <td>{{ overlap.total_students }}</td>
+                                        <td>{{ overlap.first_supervisor.name }}</td>
+                                        <td>{{ overlap.second_supervisor.name }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    // Initialize tooltips
+    $('[data-bs-toggle="tooltip"]').tooltip();
+    
+    // Initialize DataTable for schedule
+    $('.table').DataTable({
+        "language": {
+            "url": "//cdn.datatables.net/plug-ins/1.10.20/i18n/Arabic.json"
+        },
+        "responsive": true,
+        "autoWidth": false
+    });
+});
+</script>
+{% endblock %}

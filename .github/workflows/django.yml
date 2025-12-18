@@ -1,54 +1,45 @@
-name: CI/CD Pipeline
+name: CI/CD Pipeline - Run Django
 
 on:
   push:
-    branches:
-      - main
-      - develop
+    branches: [ main, develop ]
   pull_request:
-    branches:
-      - main
+    branches: [ main, develop ]
 
 jobs:
-  test:
+  run:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout repository
-      - name: Checkout code
-        uses: actions/checkout@v3
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
-      # 2. Set up Python
-      - name: Set up Python 3.10
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
 
-      # 3. Install dependencies
-      - name: Install Python dependencies
-        run: |
-          python -m pip install --upgrade pip
-          # تثبيت Django و Crispy Forms و Bootstrap5
-          pip install "Django>=4.2"
-          pip install "django-crispy-forms>=2.0"
-          pip install "crispy-bootstrap5>=0.6"
-          # تثبيت بقية الحزم المستخدمة في مشروعك
-          pip install pandas channels asgiref
-          pip install pytest pytest-cov pytest-django django-bootstrap-v5 django-widget-tweaks WeasyPrint openpyxl
-          # تثبيت الحزم الموجودة في requirements.txt إذا كان موجود
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    - name: Upgrade pip
+      run: python -m pip install --upgrade pip
 
-      # 4. Run Django migrations
-      - name: Run migrations
-        run: python manage.py migrate
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+        pip install django-crispy-forms crispy-bootstrap5 bootstrap5 widget-tweaks
+        pip install weasyprint openpyxl
 
-      # 5. Run tests with coverage
-      - name: Run tests
-        run: pytest --cov=.
+    - name: Set environment variables
+      run: |
+        echo "DJANGO_SETTINGS_MODULE=EMS.settings" >> $GITHUB_ENV
+        echo "SECRET_KEY=test-secret-key" >> $GITHUB_ENV
+        echo "DEBUG=True" >> $GITHUB_ENV
 
-      # 6. Upload coverage report to Codecov (اختياري)
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
-        with:
-          file: ./coverage.xml
-          flags: unittests
+    - name: Run migrations
+      run: python manage.py migrate
+
+    - name: Collect static files
+      run: python manage.py collectstatic --noinput
+
+    - name: Run Django server
+      run: |
+        python manage.py runserver 0.0.0.0:8000

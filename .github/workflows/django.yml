@@ -34,7 +34,7 @@ jobs:
           pip install "crispy-bootstrap5>=0.6"
           # تثبيت بقية الحزم المستخدمة في مشروعك
           pip install pandas channels asgiref
-          pip install pytest pytest-cov pytest-django
+          pip install pytest pytest-cov pytest-django bootstrap5
           # تثبيت الحزم الموجودة في requirements.txt إذا كان موجود
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 

@@ -25,7 +25,7 @@ jobs:
     - name: Install dependencies
       run: |
         pip install -r requirements.txt
-        pip install django-crispy-forms crispy-bootstrap5 bootstrap5 widget-tweaks
+        pip install django-crispy-forms crispy-bootstrap5 widget-tweaks
         pip install weasyprint openpyxl
 
     - name: Set environment variables

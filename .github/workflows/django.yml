@@ -1,45 +1,67 @@
-name: CI/CD Pipeline - Run Django
+name: Run Django Project
 
 on:
   push:
-    branches: [ main, develop ]
+    branches:
+      - main
+      - develop
   pull_request:
-    branches: [ main, develop ]
+    branches:
+      - main
 
 jobs:
   run:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
+      # 1. Checkout repository
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.10'
+      # 2. Set up Python
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
 
-    - name: Upgrade pip
-      run: python -m pip install --upgrade pip
+      # 3. Install Python dependencies
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install "Django>=4.2"
+          pip install "django-crispy-forms>=2.0"
+          pip install "crispy-bootstrap5>=0.6"
+          pip install pandas channels asgiref
+          pip install pytest pytest-cov pytest-django django-bootstrap-v5 django-widget-tweaks WeasyPrint openpyxl
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-    - name: Install dependencies
-      run: |
-        pip install -r requirements.txt
-        pip install django-crispy-forms crispy-bootstrap5 widget-tweaks
-        pip install weasyprint openpyxl
+      # 4. Run Django migrations
+      - name: Run migrations
+        run: python manage.py migrate
 
-    - name: Set environment variables
-      run: |
-        echo "DJANGO_SETTINGS_MODULE=EMS.settings" >> $GITHUB_ENV
-        echo "SECRET_KEY=test-secret-key" >> $GITHUB_ENV
-        echo "DEBUG=True" >> $GITHUB_ENV
+      # 5. Install ngrok
+      - name: Install ngrok
+        run: |
+          sudo apt-get install unzip -y
+          curl -s https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip -o ngrok.zip
+          unzip ngrok.zip
+          chmod +x ngrok
 
-    - name: Run migrations
-      run: python manage.py migrate
+      # 6. Start Django server in background
+      - name: Run Django server
+        run: |
+          nohup python manage.py runserver 0.0.0.0:8000 &
 
-    - name: Collect static files
-      run: python manage.py collectstatic --noinput
+      # 7. Start ngrok tunnel
+      - name: Expose Django via ngrok
+        env:
+          NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
+        run: |
+          ./ngrok authtoken $NGROK_AUTH_TOKEN
+          ./ngrok http 8000 --log=stdout > ngrok.log &
+          sleep 5
+          curl --silent http://127.0.0.1:4040/api/tunnels | jq
 
-    - name: Run Django server
-      run: |
-        python manage.py runserver 0.0.0.0:8000
+      # 8. Optional: Keep workflow alive for demo (e.g., 10 minutes)
+      - name: Keep workflow alive
+        run: sleep 600
